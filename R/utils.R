@@ -1,0 +1,213 @@
+1
+
+# get_new_file = function(file, suffix="-modif"){
+#   str_remove(file, regex("\\.[rR]")) %>% paste0(suffix, ".R")
+# }
+
+ref_names = c("first_line", "first_byte", "last_line", "last_byte", "first_column",
+              "last_column", "first_parsed", "last_parsed")
+
+#TODO usethis:::read_utf8() ?
+
+#' usethis:::write_utf8
+write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
+  stopifnot(is.character(path))
+  stopifnot(is.character(lines))
+  file_mode = if (append) "ab" else "wb"
+  con = file(path, open=file_mode, encoding="utf-8")
+  withr::defer(close(con))
+  lines = gsub("\r?\n", line_ending, lines)
+  writeLines(enc2utf8(lines), con, sep = line_ending,
+             useBytes = TRUE)
+  invisible(TRUE)
+}
+
+
+#' roxygen2:::comments
+comments = function (refs) {
+  srcfile <- attr(refs[[1]], "srcfile")
+  com <- vector("list", length(refs))
+  for (i in seq_along(refs)) {
+    if (i == 1) {
+      first_byte <- 1
+      first_line <- 1
+    }
+    else {
+      first_byte <- refs[[i - 1]][4]     #modif: not +1
+      first_line <- refs[[i - 1]][3] + 1 #modif: +1
+    }
+    last_line <- refs[[i]][3]
+    last_byte <- refs[[i]][4]
+    lloc <- c(first_line, first_byte, last_line, last_byte)
+    com[[i]] <- srcref(srcfile, lloc)
+  }
+  com
+}
+
+
+#' @examples
+#' @importFrom purrr map2
+#' @importFrom purrr map
+#' lines = read_lines(file)
+#' parsed = parse(text=lines, keep.source=TRUE)
+get_srcref_lines = function(parsed){
+  refs = getSrcref(parsed) %>% set_names_ref()
+  comments_refs = comments(refs) %>% set_names_ref()
+  ref_names = c("first_line", "first_byte", "last_line", "last_byte", "first_column",
+                "last_column", "first_parsed", "last_parsed")
+  # lst(
+  #   coms = comments_refs %>% map(~as.list(as.numeric(.x)) %>% set_names(ref_names)),
+  #   funs = refs %>% map(~as.list(as.numeric(.x)) %>% set_names(ref_names)),
+  # ) %>% transpose()
+  
+  comments_refs %>% map(~list(first_line_com=.x[1], last_line=.x[3]))
+  refs %>% map(~list(first_line_fun=.x[1], last_line=.x[3]))
+  
+  rtn = map2(comments_refs, refs, ~{
+    stopifnot(.x[3]==.y[3])
+    list(first_line_com=.x[1], first_line_fun=.y[1], last_line=.x[3])
+  })
+  attr(rtn, "src") = comments_refs
+  rtn
+  # lst(
+  #   coms = comments_refs %>% map(~list(first_line=.x[1], last_line=.x[3])),
+  #   funs = refs %>% map(~list(first_line=.x[1], last_line=.x[3])),
+  # ) %>% transpose()
+}
+
+
+#' @param lines result of [read_lines()]
+#' @param insert line to insert
+#' @param pos insert before this position
+insert_line = function(lines, insert, pos){
+  c(
+    lines[seq(1, pos-1)], 
+    insert,
+    lines[seq(pos, length(lines))]
+  )
+}
+
+is_com = function(x) str_starts(x, "#+'")
+
+set_names_ref = function(refs, warn_guess=FALSE){
+  ref_names = refs %>%
+    map_chr(~{
+      # browser()
+      src = as.character(.x, useSource=TRUE)
+      src = src[!str_starts(src, "#")]
+      src = src[nzchar(src)]
+      fun = paste(src, collapse="\n")
+      fun_name = str_extract(fun, regex("`?(.*?)`? *(?:=|<-) *function.*"), group=TRUE)
+      # if(is.na(fun_name)){
+      #   if(warn_guess) {
+      #     cli_warn(c("Could not guess function name in code:", i="{.code {src}}"))
+      #   }
+      #   fun_name = "unknown"
+      # }
+      fun_name
+    })
+  ref_names[is.na(ref_names)] = paste0("unnamed_", seq_along(ref_names[is.na(ref_names)]))
+  
+  set_names(refs, ref_names)
+}
+
+
+get_anywhere = function(fun, exceptions=c(get_package()$package, ".GlobalEnv")){
+  # this_pkg = get_package()
+  pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
+  # if("xfun" %in% pkgs) browser()
+  # pkgs = pkgs[pkgs!=this_pkg$package]
+  # pkgs = pkgs[pkgs!=".GlobalEnv"]
+  exported = map_lgl(pkgs, ~is_exported(fun, .x))
+  exceptions = pkgs %in% exceptions
+  pkgs[exported | exceptions]
+}
+
+is_exported = function(fun, pkg){
+  l = withr::with_package(pkg, try(ls(paste0("package:",pkg)), silent=TRUE))
+  if(inherits(l, "try-error")) return(FALSE)
+  fun %in% l
+}
+
+get_package = function(pkg=NULL){
+  if(is.null(pkg)){
+    pkg = getOption("autoimport_pkg", ".")
+  }
+  devtools::as.package(pkg)
+}
+
+
+# https://stackoverflow.com/a/31675695/3888000
+exists2 <- function(x) {
+  stopifnot(is.character(x) && length(x) == 1)
+  
+  split <- strsplit(x, "::")[[1]]
+  
+  if (length(split) == 1) {
+    exists(split[1])
+  } else if (length(split) == 2) {
+    exists(split[2], envir = asNamespace(split[1]))
+  } else {
+    stop(paste0("exists2 cannot handle ", x))
+  }
+}
+
+user_input_packages = function(user_ask){
+  title = glue("There are {nrow(user_ask)} functions that can be imported from several packages. What do you want to do?")
+  choices = c("Choose the package for each", "Choose for me please", "Abort mission")
+  menu(choices=choices, title=title)
+}
+
+user_input_1package = function(fun, pkg){
+  ns = parse_namespace()
+  ni = map_int(pkg, ~sum(ns$importFrom$from==.x))
+  label = glue(" ({n} function{s} imported)", n=str_pad(ni, max(nchar(ni))), s = ifelse(ni>1, "s", ""))
+  label[pkg=="base"] = ""
+  title = glue("`{fun}()` can be found in several packages.\n From which one do you want to import it:")
+  choices = glue("{pkg}{label}")
+  menu(choices=choices, title=title)
+}
+
+get_user_choice = function(import_list, ask){
+  if(!is.data.frame(import_list[[1]])){
+    import_list = import_list %>% map(list_rbind)
+  }
+  
+  user_ask = import_list %>% 
+    list_rbind(names_to="parent_fun") %>% 
+    filter(action=="ask_user") %>% 
+    distinct(fun, pkg)
+  
+  
+  if(ask){
+    selected = user_input_packages(user_ask)
+  } else {
+    cli_inform(c(i="Auto-attributing {nrow(user_ask)} functions imports, as {.arg ask==FALSE}"))
+    selected = 2
+  }
+  
+  if(selected==0 || selected==3){
+    stop("abort mission")
+  }
+  user_asked = user_ask$fun %>% 
+    set_names() %>% 
+    map2(user_ask$pkg, ~{
+      i = 1
+      if(selected==1) i = user_input_1package(.x, .y)
+      if(i==0) return(NA)
+      .y[i]
+    })
+  
+  user_asked
+}
+
+
+get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
+  f = str_remove(basename(file), regex("\\.[rR]"))
+  rtn=paste0(path, "/", prefix, f, suffix, ".R")
+  if(rtn==file){
+    stop("overwriting?")
+  }
+  rtn
+}
+
