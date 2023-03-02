@@ -1,0 +1,146 @@
+
+
+#' Change management
+#'
+#' * `import_review()` opens a Shiny app that shows a visual diff of each modified file.
+#' * `import_review_bg()` opens the Shiny app in a background job so that you can keep working. Disclaimer: this can bloat your stack call!
+#' * `review_files()` is a helper you probably won't need
+#'
+#' @param data_files result of `review_files()`
+#'
+#' @source shamelessly inspired by testthat::snapshot_review()
+#' @export
+import_review = function(data_files=review_files()) {
+  check_installed("shiny", "snapshot_review()")
+  check_installed("diffviewer", "snapshot_review()")
+
+  if(!any(data_files$changed)){
+    cli_inform("No changes to review.")
+    return(invisible(FALSE))
+  }
+  review_app(data_files)
+  rstudio_tickle()
+  invisible()
+}
+
+#' @rdname import_review
+#' @description NULL
+#' @export
+review_files = function(path="R/"){
+  files = dir(path, full.names=TRUE)
+  checkmate::assert_file_exists(files)
+  new_files = file.path(get_target_dir(), basename(files))
+  files = files[file.exists(new_files)]
+  new_files = new_files[file.exists(new_files)]
+  changed = map2_lgl(files, new_files, ~{
+    !identical(digest(.x, file=TRUE), digest(.y, file=TRUE))
+  })
+  tibble(files, new_files, changed)
+}
+
+
+#' @rdname import_review
+#' @export
+import_review_bg = function(data_files=review_files()){
+  # brw = function(url) .Call("rs_browseURL", url, PACKAGE="(embedding)")
+  brw = Sys.getenv("R_BROWSER")
+  callr::r_bg(function() import_review(data_files),
+              package=TRUE,
+              env = c(R_BROWSER =brw))
+}
+
+
+# Shiny ---------------------------------------------------------------------------------------
+
+
+
+#' @noRd
+review_app = function(data_files){
+  case_index = seq_along(data_files$files) %>% set_names(data_files$files)
+  handled = rep(FALSE, length(case_index))
+
+  ui = shiny::fluidPage(
+    style = "margin: 0.5em",
+    shiny::fluidRow(style = "display: flex",
+                    shiny::div(style = "flex: 1 1",
+                               shiny::selectInput("cases", NULL, case_index, width = "100%")),
+                    shiny::div(class = "btn-group", style = "margin-left: 1em; flex: 0 0 auto",
+                               shiny::actionButton("skip", "Skip"),
+                               shiny::actionButton("accept", "Accept", class="btn-success"))
+    ),
+    shiny::fluidRow(
+      diffviewer::visual_diff_output("diff")
+    )
+  )
+
+  server = function(input, output, session) {
+    old_path = data_files$files
+    new_path = data_files$new_files
+
+    i = shiny::reactive(as.numeric(input$cases))
+    output$diff = diffviewer::visual_diff_render({
+      file = old_path[i()]
+      new_file = new_path[i()]
+      diffviewer::visual_diff(file, new_file)
+    })
+
+    # Handle buttons - after clicking update move input$cases to next case,
+    # and remove current case (for accept/reject). If no cases left, close app
+    shiny::observeEvent(input$accept, {
+      cli_inform(c(">"="Accepting modification of '{.file {old_path[[i()]]}}'"))
+      file.rename(new_path[[i()]], old_path[[i()]])
+      update_cases()
+    })
+    shiny::observeEvent(input$skip, {
+      cli_inform(c(">"="Skipping file '{.file {old_path[[i()]]}}'"))
+      i = next_case()
+      shiny::updateSelectInput(session, "cases", selected = i)
+    })
+
+    update_cases = function(){
+      handled[[i()]] <<- TRUE
+      i = next_case()
+      shiny::updateSelectInput(session, "cases",
+                               choices = case_index[!handled],
+                               selected = i
+      )
+    }
+    next_case = function(){
+      if(all(handled)){
+        cli_inform(c(v="Review complete"))
+        shiny::stopApp()
+        return()
+      }
+      # Find next case;
+      remaining = case_index[!handled]
+      next_cases = which(remaining > i())
+      if (length(next_cases) == 0) remaining[[1]] else remaining[[next_cases[[1]]]]
+    }
+  }
+
+  cli_inform(c(
+    "Starting Shiny app for modification review",
+    i = "Use {.key Ctrl + C} or {.key Echap} to quit"
+  ))
+  shiny::runApp(
+    shiny::shinyApp(ui, server),
+    quiet = TRUE,
+    launch.browser = shiny::paneViewer()
+  )
+  invisible()
+}
+
+# Helpers -----------------------------------------------------------------
+
+
+# testthat:::rstudio_tickle
+rstudio_tickle = function(){
+  if (!is_installed("rstudioapi")) {
+    return()
+  }
+  if (!rstudioapi::hasFun("executeCommand")) {
+    return()
+  }
+  rstudioapi::executeCommand("vcsRefresh")
+  rstudioapi::executeCommand("refreshFiles")
+}

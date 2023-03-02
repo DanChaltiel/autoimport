@@ -8,7 +8,7 @@
 
 
 #' because base::parseNamespaceFile() is not very handy
-parse_namespace = function(file="./NAMESPACE"){
+parse_namespace = function(file){
   test_file = getOption("test_file")
   if(!is.null(test_file)) file = test_file
   rtn = read_lines(file) %>%
@@ -24,19 +24,21 @@ parse_namespace = function(file="./NAMESPACE"){
   rtn
 }
 
-parse_ref = function(ref){
+
+#' @param ref a ref
+#' @param pkg_name package name (character)
+#' @param ns result of `parse_namespace()`
+#' @noRd
+parse_ref = function(ref, pkg_name, ns, deps){
   .fun = paste(as.character(ref, useSource=TRUE), collapse="\n")
   pd = getParseData(parse(text=.fun))
   non_comment = pd %>% filter(token!="COMMENT") %>% pull(text) %>% paste(collapse="")
-  # fun_name = str_extract(non_comment, regex("(.*?) *(?:=|<-) *function.*"), group=TRUE)
   nms = pd$text[pd$token == "SYMBOL_FUNCTION_CALL"]
   if(length(nms)==0) return(NULL)
-  deps = desc::desc()$get_deps()
-  ns = parse_namespace()
 
   loc = nms %>%
     as_tibble_col(column_name="fun") %>%
-    mutate(pkg = map(fun, ~get_anywhere(.x))) %>% 
+    mutate(pkg = map(fun, ~get_anywhere(.x, pkg_name))) %>%
     unchop(pkg, keep_empty=TRUE) %>%
     mutate(
       label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
@@ -47,7 +49,7 @@ parse_ref = function(ref){
     ) %>%
     distinct() %>%
     arrange(fun, desc(fun_imported), desc(pkg_n_imports), pkg_in_desc)
-    
+
   # loc = nms %>%
   #   as_tibble_col(column_name="fun") %>%
   #   mutate(pkg = map(fun, ~getAnywhere(.x)$where)) %>%
@@ -66,19 +68,19 @@ parse_ref = function(ref){
 
 # empty_ref = getSrcref(parse(text="c(1)", keep.source=TRUE)) %>% list_importFrom() %>% .[[1]] %>% .[0,]
 # dput(empty_ref)
-empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character(0), 
-                           action = character(0), reason = character(0), pkgs = list()), 
+empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character(0),
+                           action = character(0), reason = character(0), pkgs = list()),
                       row.names = integer(0), class = "data.frame")
 
-parse_function = function(ref, this_pkg){
-  loc = parse_ref(ref)
+parse_function = function(ref, pkg_name, ns, deps){
+  loc = parse_ref(ref, pkg_name, ns, deps)
   # if(is.null(loc)) browser()
   if(is.null(loc)) return(empty_ref)
   if(nrow(loc)==0) return(loc)
   # .x=loc %>% filter(fun=="stop")
   # browser()
   rslt = loc %>%
-    split(.$fun) %>% 
+    split(.$fun) %>%
     imap(~{
       rtn = list(.x$pkg)
       action = "nothing"
@@ -87,8 +89,8 @@ parse_function = function(ref, this_pkg){
         if(is.na(.x$pkg)) {
           action = "warn"
           reason = glue("`{.y}()` not found in any loaded package.")
-        } else if(.x$pkg==this_pkg$package) {
-          reason = glue("`{.x$label}()` in internal to {this_pkg$package}")
+        } else if(.x$pkg==pkg_name) {
+          reason = glue("`{.x$label}()` in internal to {pkg_name}")
         } else if(.x$pkg=="base") {
           reason = glue("`{.x$label}()` in base R")
         } else if(isTRUE(.x$fun_imported)) {
@@ -128,8 +130,7 @@ parse_function = function(ref, this_pkg){
     arrange(action)
 }
 
-list_importFrom = function(refs, this_pkg=NULL, verbose=FALSE){
-  this_pkg = get_package(this_pkg)
+list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
   rslt = refs %>%
     imap(~{
       if(verbose){
@@ -139,30 +140,40 @@ list_importFrom = function(refs, this_pkg=NULL, verbose=FALSE){
           cli_inform(c(i="Parsing function {.fun {.y}}"))
         }
       }
-      parse_function(.x, this_pkg=this_pkg)
+      parse_function(.x, pkg_name=pkg_name, ns=ns, deps=deps)
     })
   rslt
 }
 
 
-get_inserts = function(.x){
+get_inserts = function(.x, user_choice){
   if(is.null(.x)) return(NULL)
   if(nrow(.x)==0) return(NULL)
-  .x %>% 
+  .x %>%
     mutate(
-      tmp = user_choice[fun] %>% modify_if(is.null, ~"error"), 
-      pkg = if_else(lengths(pkg)>1, tmp, pkg) %>% unlist()) %>% 
-    group_by(pkg) %>% 
-    summarise(label = paste(cur_group(), paste(sort(fun), collapse=" "))) %>% 
-    filter(!is.na(pkg) & pkg!="base") %>% 
+      tmp = user_choice[fun] %>% modify_if(is.null, ~"error"),
+      pkg = if_else(lengths(pkg)>1, tmp, pkg) %>% unlist()) %>%
+    group_by(pkg) %>%
+    summarise(label = paste(cur_group(), paste(sort(fun), collapse=" "))) %>%
+    filter(!is.na(pkg) & pkg!="base") %>%
     pull(label)
 }
 
-get_lines2 = function(inserts, .x, .y){
+get_lines2 = function(src_ref, imports){
   # browser()
-  # if(is.null(inserts[[.y]])) return(character(0))
-  insert = glue("#' @importFrom {inserts[[.y]]}")
-  fun_c = as.character(.x)
+  # if(.y=="unnamed_1") browser()
+  # if(is.null(imports)) return(character(0))
+  insert = glue("#' @importFrom {imports}")
+  fun_c = as.character(src_ref)
+  # if(fun_c[4]=="dplyr::`%>%`") browser()
+  #
+  # cli_inform("{last(fun_c)} -> is_reexport={is_reexport(fun_c)}")
+
+  if(is_reexport(fun_c)){
+    #TODO improve reexport management
+    return(fun_c)
+  }
+
   rmv = str_starts(fun_c, "#+' *@importFrom")
   if(any(rmv)){
     pos = min(which(rmv))
@@ -174,3 +185,10 @@ get_lines2 = function(inserts, .x, .y){
   }
   insert_line(fun_c, insert, pos=pos)
 }
+
+is_reexport = function(fun_c){
+  last_call = last(fun_c)
+  str_detect(last_call, "(\\w+):{1,3}(?!:)(.+)") &&
+    !str_detect(last_call, "(^|\\W)function\\(")
+}
+

@@ -45,9 +45,9 @@ comments = function (refs) {
 }
 
 
-#' @examples
 #' @importFrom purrr map2
 #' @importFrom purrr map
+#' @examples
 #' lines = read_lines(file)
 #' parsed = parse(text=lines, keep.source=TRUE)
 get_srcref_lines = function(parsed){
@@ -59,10 +59,10 @@ get_srcref_lines = function(parsed){
   #   coms = comments_refs %>% map(~as.list(as.numeric(.x)) %>% set_names(ref_names)),
   #   funs = refs %>% map(~as.list(as.numeric(.x)) %>% set_names(ref_names)),
   # ) %>% transpose()
-  
+
   comments_refs %>% map(~list(first_line_com=.x[1], last_line=.x[3]))
   refs %>% map(~list(first_line_fun=.x[1], last_line=.x[3]))
-  
+
   rtn = map2(comments_refs, refs, ~{
     stopifnot(.x[3]==.y[3])
     list(first_line_com=.x[1], first_line_fun=.y[1], last_line=.x[3])
@@ -81,7 +81,7 @@ get_srcref_lines = function(parsed){
 #' @param pos insert before this position
 insert_line = function(lines, insert, pos){
   c(
-    lines[seq(1, pos-1)], 
+    lines[seq(1, pos-1)],
     insert,
     lines[seq(pos, length(lines))]
   )
@@ -107,42 +107,53 @@ set_names_ref = function(refs, warn_guess=FALSE){
       fun_name
     })
   ref_names[is.na(ref_names)] = paste0("unnamed_", seq_along(ref_names[is.na(ref_names)]))
-  
+
   set_names(refs, ref_names)
 }
 
 
-get_anywhere = function(fun, exceptions=c(get_package()$package, ".GlobalEnv")){
+get_anywhere = function(fun, pkg_name, prefer=c(pkg_name, ".GlobalEnv")){
   # this_pkg = get_package()
+  # print(fun)
   pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
+  # browser()
+  # if(fun=="write_utf8") browser()
   # if("xfun" %in% pkgs) browser()
   # pkgs = pkgs[pkgs!=this_pkg$package]
   # pkgs = pkgs[pkgs!=".GlobalEnv"]
+  pref = pkgs[pkgs %in% prefer]
+  if(length(pref)>0) return(pref)
+
   exported = map_lgl(pkgs, ~is_exported(fun, .x))
-  exceptions = pkgs %in% exceptions
-  pkgs[exported | exceptions]
+  prefer = pkgs %in% prefer
+  pkgs[exported | prefer]
 }
 
-is_exported = function(fun, pkg){
+is_exported = function(fun, pkg, fail=FALSE){
+  if(!pkg %in% installed.packages()){
+    if(fail) cli_abort("{.pkg {pkg}} is not installed")
+    return(FALSE)
+  }
   l = withr::with_package(pkg, try(ls(paste0("package:",pkg)), silent=TRUE))
   if(inherits(l, "try-error")) return(FALSE)
   fun %in% l
 }
 
-get_package = function(pkg=NULL){
+get_package_name = function(pkg=NULL){
   if(is.null(pkg)){
-    pkg = getOption("autoimport_pkg", ".")
+    default = devtools::as.package(".")$package
+    pkg = getOption("autoimport_pkg", default)
   }
-  devtools::as.package(pkg)
+  pkg
 }
 
 
 # https://stackoverflow.com/a/31675695/3888000
 exists2 <- function(x) {
   stopifnot(is.character(x) && length(x) == 1)
-  
+
   split <- strsplit(x, "::")[[1]]
-  
+
   if (length(split) == 1) {
     exists(split[1])
   } else if (length(split) == 2) {
@@ -153,13 +164,12 @@ exists2 <- function(x) {
 }
 
 user_input_packages = function(user_ask){
-  title = glue("There are {nrow(user_ask)} functions that can be imported from several packages. What do you want to do?")
+  title = glue("\n\nThere are {nrow(user_ask)} functions that can be imported from several packages. What do you want to do?")
   choices = c("Choose the package for each", "Choose for me please", "Abort mission")
   menu(choices=choices, title=title)
 }
 
-user_input_1package = function(fun, pkg){
-  ns = parse_namespace()
+user_input_1package = function(fun, pkg, ns){
   ni = map_int(pkg, ~sum(ns$importFrom$from==.x))
   label = glue(" ({n} function{s} imported)", n=str_pad(ni, max(nchar(ni))), s = ifelse(ni>1, "s", ""))
   label[pkg=="base"] = ""
@@ -168,36 +178,36 @@ user_input_1package = function(fun, pkg){
   menu(choices=choices, title=title)
 }
 
-get_user_choice = function(import_list, ask){
+get_user_choice = function(import_list, ask, ns){
   if(!is.data.frame(import_list[[1]])){
     import_list = import_list %>% map(list_rbind)
   }
-  
-  user_ask = import_list %>% 
-    list_rbind(names_to="parent_fun") %>% 
-    filter(action=="ask_user") %>% 
+
+  user_ask = import_list %>%
+    list_rbind(names_to="parent_fun") %>%
+    filter(action=="ask_user") %>%
     distinct(fun, pkg)
-  
-  
+
+
   if(ask){
     selected = user_input_packages(user_ask)
   } else {
     cli_inform(c(i="Auto-attributing {nrow(user_ask)} functions imports, as {.arg ask==FALSE}"))
     selected = 2
   }
-  
+
   if(selected==0 || selected==3){
     stop("abort mission")
   }
-  user_asked = user_ask$fun %>% 
-    set_names() %>% 
+  user_asked = user_ask$fun %>%
+    set_names() %>%
     map2(user_ask$pkg, ~{
       i = 1
-      if(selected==1) i = user_input_1package(.x, .y)
+      if(selected==1) i = user_input_1package(.x, .y, ns)
       if(i==0) return(NA)
       .y[i]
     })
-  
+
   user_asked
 }
 
@@ -211,3 +221,11 @@ get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
   rtn
 }
 
+
+get_target_dir = function(path=NULL){
+  tmp = file.path(tempdir(), "autoimport")
+  d = getOption("autoimport_target_dir", tmp)
+  if(!is.null(path)) d = file.path(d, path)
+  dir.create(d, recursive=TRUE, showWarnings=FALSE)
+  d
+}
