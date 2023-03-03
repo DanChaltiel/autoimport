@@ -24,13 +24,6 @@ snapshot_review_bg = function(...){
 
 v=utils::View
 
-library(tidyverse)
-library(cli)
-library(glue)
-library(rlang)
-library(digest)
-
-
 
 danMisc::cat0() #for namespace loading
 jsonlite::toJSON("") #for namespace loading

@@ -10,6 +10,7 @@ ref_names = c("first_line", "first_byte", "last_line", "last_byte", "first_colum
 #TODO usethis:::read_utf8() ?
 
 #' usethis:::write_utf8
+#' @importFrom withr defer
 write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
   stopifnot(is.character(path))
   stopifnot(is.character(lines))
@@ -45,8 +46,8 @@ comments = function (refs) {
 }
 
 
-#' @importFrom purrr map2
-#' @importFrom purrr map
+#' @importFrom purrr map map2
+#' @importFrom utils getSrcref
 #' @examples
 #' lines = read_lines(file)
 #' parsed = parse(text=lines, keep.source=TRUE)
@@ -87,8 +88,12 @@ insert_line = function(lines, insert, pos){
   )
 }
 
+#' @importFrom stringr str_starts
 is_com = function(x) str_starts(x, "#+'")
 
+#' @importFrom purrr map_chr
+#' @importFrom rlang set_names
+#' @importFrom stringr regex str_extract str_starts
 set_names_ref = function(refs, warn_guess=FALSE){
   ref_names = refs %>%
     map_chr(~{
@@ -121,6 +126,8 @@ set_names_ref = function(refs, warn_guess=FALSE){
 #'
 #' @return a character vector of package names
 #' @noRd
+#' @importFrom purrr map_lgl
+#' @importFrom rlang set_names
 get_anywhere = function(fun, prefer){
   # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
 
@@ -136,6 +143,9 @@ get_anywhere = function(fun, prefer){
   pkgs[exported]
 }
 
+#' @importFrom cli cli_abort
+#' @importFrom rlang is_installed
+#' @importFrom withr with_package
 is_exported = function(fun, pkg, fail=FALSE){
   if(!is_installed(pkg)){
     if(fail) cli_abort("{.pkg {pkg}} is not installed")
@@ -146,6 +156,7 @@ is_exported = function(fun, pkg, fail=FALSE){
   fun %in% l
 }
 
+#' @importFrom devtools as.package
 get_package_name = function(pkg=NULL){
   if(is.null(pkg)){
     default = devtools::as.package(".")$package
@@ -170,12 +181,18 @@ exists2 <- function(x) {
   }
 }
 
+#' @importFrom glue glue
+#' @importFrom utils menu
 user_input_packages = function(user_ask){
   title = glue("\n\nThere are {nrow(user_ask)} functions that can be imported from several packages. What do you want to do?")
   choices = c("Choose the package for each", "Choose for me please", "Abort mission")
   menu(choices=choices, title=title)
 }
 
+#' @importFrom glue glue
+#' @importFrom purrr map_int
+#' @importFrom stringr str_pad
+#' @importFrom utils menu
 user_input_1package = function(fun, pkg, ns){
   ni = map_int(pkg, ~sum(ns$importFrom$from==.x))
   label = glue(" ({n} function{s} imported)", n=str_pad(ni, max(nchar(ni))), s = ifelse(ni>1, "s", ""))
@@ -185,6 +202,10 @@ user_input_1package = function(fun, pkg, ns){
   menu(choices=choices, title=title)
 }
 
+#' @importFrom cli cli_inform
+#' @importFrom dplyr distinct filter
+#' @importFrom purrr list_rbind map map2
+#' @importFrom rlang set_names
 get_user_choice = function(import_list, ask, ns){
   if(!is.data.frame(import_list[[1]])){
     import_list = import_list %>% map(list_rbind)
@@ -219,6 +240,7 @@ get_user_choice = function(import_list, ask, ns){
 }
 
 
+#' @importFrom stringr regex str_remove
 get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
   f = str_remove(basename(file), regex("\\.[rR]"))
   rtn=paste0(path, "/", prefix, f, suffix, ".R")

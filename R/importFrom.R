@@ -8,6 +8,10 @@
 
 
 #' because base::parseNamespaceFile() is not very handy
+#' @importFrom dplyr filter
+#' @importFrom readr read_lines
+#' @importFrom tibble as_tibble
+#' @importFrom tidyr separate_wider_delim separate_wider_regex
 parse_namespace = function(file){
   test_file = getOption("test_file")
   if(!is.null(test_file)) file = test_file
@@ -25,10 +29,17 @@ parse_namespace = function(file){
 }
 
 
+#' Used in [parse_function()]
+#'
 #' @param ref a ref
 #' @param pkg_name package name (character)
 #' @param ns result of `parse_namespace()`
 #' @noRd
+#' @importFrom dplyr arrange desc distinct filter mutate pull
+#' @importFrom purrr map map_int map2_lgl
+#' @importFrom tibble as_tibble_col
+#' @importFrom tidyr unchop
+#' @importFrom utils getParseData
 parse_ref = function(ref, pkg_name, ns, deps){
   .fun = paste(as.character(ref, useSource=TRUE), collapse="\n")
   pd = getParseData(parse(text=.fun))
@@ -44,9 +55,9 @@ parse_ref = function(ref, pkg_name, ns, deps){
       label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
       pkg_in_desc = pkg %in% deps$package,
       pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
-      # fun_internal = map2_lgl(pkg, fun, ~{any(ns$importFrom$what==.y)}),
-      fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$what==.y)}),
-      fun_imported2 = map2_lgl(pkg, fun, ~{any(ns$importFrom$from==.x & ns$importFrom$what==.y)}),
+      fun_internal = map2_lgl(pkg, fun, ~{any(ns$importFrom$what==.y)}),
+      # fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$what==.y)}),
+      fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$from==.x & ns$importFrom$what==.y)}),
     ) %>%
     distinct() %>%
     arrange(fun, desc(fun_imported), desc(pkg_n_imports), pkg_in_desc)
@@ -73,6 +84,11 @@ empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character
                            action = character(0), reason = character(0), pkgs = list()),
                       row.names = integer(0), class = "data.frame")
 
+#' @importFrom cli cli_warn
+#' @importFrom dplyr arrange filter mutate pull
+#' @importFrom glue glue
+#' @importFrom purrr imap list_rbind map_chr
+#' @importFrom tibble tibble
 parse_function = function(ref, pkg_name, ns, deps){
   loc = parse_ref(ref, pkg_name, ns, deps)
   # if(is.null(loc)) browser()
@@ -111,7 +127,8 @@ parse_function = function(ref, pkg_name, ns, deps){
 
         if(nrow(imported)>1) {
           dups = .x %>% filter(fun_imported) %>% pull(label)
-          cli_abort(c("duplicate in NAMESPACE??", i="Functions: {.fun {dups}}"))
+          # browser()
+          cli_warn(c("There are duplicates in NAMESPACE??", i="Functions: {.fun {dups}}"))
         } else if(nrow(imported)==1){
           rtn = list(imported$pkg)
           reason = glue("`{imported$label}()` already imported.")
@@ -131,6 +148,9 @@ parse_function = function(ref, pkg_name, ns, deps){
     arrange(action)
 }
 
+#' @importFrom cli cli_inform
+#' @importFrom purrr imap
+#' @importFrom stringr str_starts
 list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
   rslt = refs %>%
     imap(~{
@@ -147,6 +167,8 @@ list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
 }
 
 
+#' @importFrom dplyr cur_group filter group_by if_else mutate pull summarise
+#' @importFrom purrr modify_if
 get_inserts = function(.x, user_choice, exclude){
   if(is.null(.x)) return(NULL)
   if(nrow(.x)==0) return(NULL)
@@ -160,6 +182,8 @@ get_inserts = function(.x, user_choice, exclude){
     pull(label)
 }
 
+#' @importFrom glue glue
+#' @importFrom stringr str_starts
 get_lines2 = function(src_ref, imports){
   # browser()
   # if(.y=="unnamed_1") browser()
@@ -187,9 +211,10 @@ get_lines2 = function(src_ref, imports){
   insert_line(fun_c, insert, pos=pos)
 }
 
+#' @importFrom dplyr last
+#' @importFrom stringr str_detect
 is_reexport = function(fun_c){
   last_call = last(fun_c)
   str_detect(last_call, "(\\w+):{1,3}(?!:)(.+)") &&
     !str_detect(last_call, "(^|\\W)function\\(")
 }
-

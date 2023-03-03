@@ -10,6 +10,8 @@
 #'
 #' @source shamelessly inspired by testthat::snapshot_review()
 #' @export
+#' @importFrom cli cli_inform
+#' @importFrom rlang check_installed
 import_review = function(data_files=review_files()) {
   check_installed("shiny", "snapshot_review()")
   check_installed("diffviewer", "snapshot_review()")
@@ -26,6 +28,10 @@ import_review = function(data_files=review_files()) {
 #' @rdname import_review
 #' @description NULL
 #' @export
+#' @importFrom checkmate assert_file_exists
+#' @importFrom digest digest
+#' @importFrom purrr map2_lgl
+#' @importFrom tibble tibble
 review_files = function(path="R/"){
   files = dir(path, full.names=TRUE)
   checkmate::assert_file_exists(files)
@@ -41,6 +47,7 @@ review_files = function(path="R/"){
 
 #' @rdname import_review
 #' @export
+#' @importFrom callr r_bg
 import_review_bg = function(data_files=review_files()){
   # brw = function(url) .Call("rs_browseURL", url, PACKAGE="(embedding)")
   brw = Sys.getenv("R_BROWSER")
@@ -55,6 +62,11 @@ import_review_bg = function(data_files=review_files()){
 
 
 #' @noRd
+#' @importFrom cli cli_inform
+#' @importFrom diffviewer visual_diff visual_diff_output visual_diff_render
+#' @importFrom htmltools div
+#' @importFrom rlang set_names
+#' @importFrom shiny actionButton fluidPage fluidRow observeEvent paneViewer reactive runApp selectInput shinyApp stopApp updateSelectInput
 review_app = function(data_files){
   case_index = seq_along(data_files$files) %>% set_names(data_files$files)
   handled = rep(FALSE, length(case_index))
@@ -134,6 +146,8 @@ review_app = function(data_files){
 
 
 # testthat:::rstudio_tickle
+#' @importFrom rlang is_installed
+#' @importFrom rstudioapi executeCommand hasFun
 rstudio_tickle = function(){
   if (!is_installed("rstudioapi")) {
     return()

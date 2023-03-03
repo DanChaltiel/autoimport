@@ -16,6 +16,15 @@
 #' @export
 #'
 #' @examples
+#' @importFrom cli cli_abort cli_h1 cli_inform cli_warn
+#' @importFrom digest digest
+#' @importFrom dplyr desc
+#' @importFrom glue glue
+#' @importFrom purrr imap map map_depth pmap
+#' @importFrom rlang set_names
+#' @importFrom stringr str_ends str_replace
+#' @importFrom tibble tibble
+#' @importFrom utils getSrcref
 autoimport = function(files=dir("R/", full.names=TRUE),
                       pkg_name=get_package_name(),
                       namespace_file="./NAMESPACE",
@@ -174,6 +183,11 @@ autoimport = function(files=dir("R/", full.names=TRUE),
 
 
 
+#' @importFrom cli cli_h2 cli_warn
+#' @importFrom dplyr arrange filter mutate rename
+#' @importFrom purrr map
+#' @importFrom stringr str_detect
+#' @importFrom utils stack
 check_duplicated = function(ref_list, verbose) {
   dups = ref_list %>%
     map(names) %>% stack() %>%
