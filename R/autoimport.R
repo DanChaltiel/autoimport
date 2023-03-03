@@ -87,7 +87,7 @@ autoimport = function(files=dir("R/", full.names=TRUE),
       cache_path = file.path(cache_dir, filename)
 
       dig = digest_list[[file]]
-      if(!is.null(cache) && dig==cache$dig){
+      if(isTRUE(use_cache) && !is.null(cache) && dig==cache$dig){
         rtn = cache$cache
         if(verbose>1){
           cli_inform(c("!"="Reading cache",
@@ -127,7 +127,7 @@ autoimport = function(files=dir("R/", full.names=TRUE),
         return(NULL)
       }
 
-      inserts = imp_list %>% map(~get_inserts(.x, user_choice))
+      inserts = imp_list %>% map(~get_inserts(.x, user_choice, exclude=c("base", pkg_name)))
       cli_inform(c(i="{length(unlist(inserts))} inserts in {.file {file}}"))
 
 

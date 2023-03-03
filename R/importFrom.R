@@ -38,18 +38,19 @@ parse_ref = function(ref, pkg_name, ns, deps){
 
   loc = nms %>%
     as_tibble_col(column_name="fun") %>%
-    mutate(pkg = map(fun, ~get_anywhere(.x, pkg_name))) %>%
+    mutate(pkg = map(fun, ~get_anywhere(.x, prefer=c(pkg_name, ".GlobalEnv")))) %>%
     unchop(pkg, keep_empty=TRUE) %>%
     mutate(
       label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
       pkg_in_desc = pkg %in% deps$package,
       pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
+      # fun_internal = map2_lgl(pkg, fun, ~{any(ns$importFrom$what==.y)}),
       fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$what==.y)}),
       fun_imported2 = map2_lgl(pkg, fun, ~{any(ns$importFrom$from==.x & ns$importFrom$what==.y)}),
     ) %>%
     distinct() %>%
     arrange(fun, desc(fun_imported), desc(pkg_n_imports), pkg_in_desc)
-
+  # browser()
   # loc = nms %>%
   #   as_tibble_col(column_name="fun") %>%
   #   mutate(pkg = map(fun, ~getAnywhere(.x)$where)) %>%
@@ -84,17 +85,17 @@ parse_function = function(ref, pkg_name, ns, deps){
     imap(~{
       rtn = list(.x$pkg)
       action = "nothing"
-
+      # if(.y=="get_inserts") browser()
       if(nrow(.x)==1) {
         if(is.na(.x$pkg)) {
           action = "warn"
           reason = glue("`{.y}()` not found in any loaded package.")
         } else if(.x$pkg==pkg_name) {
-          reason = glue("`{.x$label}()` in internal to {pkg_name}")
+          reason = glue("`{.x$fun}()` is internal to {pkg_name}")
         } else if(.x$pkg=="base") {
-          reason = glue("`{.x$label}()` in base R")
+          reason = glue("`{.x$fun}()` is base R")
         } else if(isTRUE(.x$fun_imported)) {
-          reason = glue("`{.x$label}()` unique and already imported.")
+          reason = glue("`{.x$label}()` is unique and already imported.")
         # } else if(isFALSE(.x$pkg_in_desc)) {
         #   action = "add_description"
         #   reason = glue("`{.y}()` only found in package `{.x$pkg}`,
@@ -146,7 +147,7 @@ list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
 }
 
 
-get_inserts = function(.x, user_choice){
+get_inserts = function(.x, user_choice, exclude){
   if(is.null(.x)) return(NULL)
   if(nrow(.x)==0) return(NULL)
   .x %>%
@@ -155,7 +156,7 @@ get_inserts = function(.x, user_choice){
       pkg = if_else(lengths(pkg)>1, tmp, pkg) %>% unlist()) %>%
     group_by(pkg) %>%
     summarise(label = paste(cur_group(), paste(sort(fun), collapse=" "))) %>%
-    filter(!is.na(pkg) & pkg!="base") %>%
+    filter(!is.na(pkg) & !pkg %in% exclude) %>%
     pull(label)
 }
 

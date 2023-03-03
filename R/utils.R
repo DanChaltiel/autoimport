@@ -112,25 +112,32 @@ set_names_ref = function(refs, warn_guess=FALSE){
 }
 
 
-get_anywhere = function(fun, pkg_name, prefer=c(pkg_name, ".GlobalEnv")){
-  # this_pkg = get_package()
-  # print(fun)
-  pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
-  # browser()
-  # if(fun=="write_utf8") browser()
-  # if("xfun" %in% pkgs) browser()
-  # pkgs = pkgs[pkgs!=this_pkg$package]
-  # pkgs = pkgs[pkgs!=".GlobalEnv"]
+#' A rewrite around [utils::getAnywhere()]
+#'
+#' Find all the packages that hold a function. `utils::getAnywhere()` annoyingly use `find()` which yield false positives.
+#'
+#' @param fun a function name (character)
+#' @param prefer packages that should be prioritized. Usually the main package name and `.GlobalEnv`.
+#'
+#' @return a character vector of package names
+#' @noRd
+get_anywhere = function(fun, prefer){
+  # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
+
+  pkgs = loadedNamespaces() %>% set_names() %>% map_lgl(~{
+    exists(fun, envir=asNamespace(.x), inherits=FALSE)
+  })
+  pkgs = sort(names(pkgs[pkgs]))
+
   pref = pkgs[pkgs %in% prefer]
   if(length(pref)>0) return(pref)
 
   exported = map_lgl(pkgs, ~is_exported(fun, .x))
-  prefer = pkgs %in% prefer
-  pkgs[exported | prefer]
+  pkgs[exported]
 }
 
 is_exported = function(fun, pkg, fail=FALSE){
-  if(!pkg %in% installed.packages()){
+  if(!is_installed(pkg)){
     if(fail) cli_abort("{.pkg {pkg}} is not installed")
     return(FALSE)
   }
