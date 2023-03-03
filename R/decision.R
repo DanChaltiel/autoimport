@@ -77,6 +77,7 @@ review_app = function(data_files){
                     shiny::div(style = "flex: 1 1",
                                shiny::selectInput("cases", NULL, case_index, width = "100%")),
                     shiny::div(class = "btn-group", style = "margin-left: 1em; flex: 0 0 auto",
+                               shiny::actionButton("stop", "Stop", class="btn-danger"),
                                shiny::actionButton("skip", "Skip"),
                                shiny::actionButton("accept", "Accept", class="btn-success"))
     ),
@@ -107,6 +108,10 @@ review_app = function(data_files){
       cli_inform(c(">"="Skipping file '{.file {old_path[[i()]]}}'"))
       i = next_case()
       shiny::updateSelectInput(session, "cases", selected = i)
+    })
+    shiny::observeEvent(input$stop, {
+      cli_inform(c("x"="Stopping"))
+      shiny::stopApp()
     })
 
     update_cases = function(){
