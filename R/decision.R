@@ -61,12 +61,12 @@ import_review_bg = function(data_files=review_files()){
 
 
 
-#' @noRd
 #' @importFrom cli cli_inform
 #' @importFrom diffviewer visual_diff visual_diff_output visual_diff_render
 #' @importFrom htmltools div
 #' @importFrom rlang set_names
 #' @importFrom shiny actionButton fluidPage fluidRow observeEvent paneViewer reactive runApp selectInput shinyApp stopApp updateSelectInput
+#' @noRd
 review_app = function(data_files){
   case_index = seq_along(data_files$files) %>% set_names(data_files$files)
   handled = rep(FALSE, length(case_index))
@@ -148,6 +148,7 @@ review_app = function(data_files){
 # testthat:::rstudio_tickle
 #' @importFrom rlang is_installed
 #' @importFrom rstudioapi executeCommand hasFun
+#' @noRd
 rstudio_tickle = function(){
   if (!is_installed("rstudioapi")) {
     return()

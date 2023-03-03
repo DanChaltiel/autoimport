@@ -12,6 +12,7 @@
 #' @importFrom readr read_lines
 #' @importFrom tibble as_tibble
 #' @importFrom tidyr separate_wider_delim separate_wider_regex
+#' @noRd
 parse_namespace = function(file){
   test_file = getOption("test_file")
   if(!is.null(test_file)) file = test_file
@@ -34,12 +35,12 @@ parse_namespace = function(file){
 #' @param ref a ref
 #' @param pkg_name package name (character)
 #' @param ns result of `parse_namespace()`
-#' @noRd
 #' @importFrom dplyr arrange desc distinct filter mutate pull
 #' @importFrom purrr map map_int map2_lgl
 #' @importFrom tibble as_tibble_col
 #' @importFrom tidyr unchop
 #' @importFrom utils getParseData
+#' @noRd
 parse_ref = function(ref, pkg_name, ns, deps){
   .fun = paste(as.character(ref, useSource=TRUE), collapse="\n")
   pd = getParseData(parse(text=.fun))
@@ -61,25 +62,9 @@ parse_ref = function(ref, pkg_name, ns, deps){
     ) %>%
     distinct() %>%
     arrange(fun, desc(fun_imported), desc(pkg_n_imports), pkg_in_desc)
-  # browser()
-  # loc = nms %>%
-  #   as_tibble_col(column_name="fun") %>%
-  #   mutate(pkg = map(fun, ~getAnywhere(.x)$where)) %>%
-  #   unchop(pkg, keep_empty=TRUE) %>%
-  #   mutate(
-  #     pkg = str_remove(pkg, "package:|namespace:"),
-  #     label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
-  #     pkg_in_desc = pkg %in% deps$package,
-  #     fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$from==.x & ns$importFrom$what==.y)}),
-  #     pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
-  #   ) %>%
-  #   distinct() %>%
-  #   arrange(fun, desc(fun_imported), desc(pkg_n_imports), pkg_in_desc)
   loc
 }
 
-# empty_ref = getSrcref(parse(text="c(1)", keep.source=TRUE)) %>% list_importFrom() %>% .[[1]] %>% .[0,]
-# dput(empty_ref)
 empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character(0),
                            action = character(0), reason = character(0), pkgs = list()),
                       row.names = integer(0), class = "data.frame")
@@ -89,6 +74,7 @@ empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character
 #' @importFrom glue glue
 #' @importFrom purrr imap list_rbind map_chr
 #' @importFrom tibble tibble
+#' @noRd
 parse_function = function(ref, pkg_name, ns, deps){
   loc = parse_ref(ref, pkg_name, ns, deps)
   # if(is.null(loc)) browser()
@@ -151,6 +137,7 @@ parse_function = function(ref, pkg_name, ns, deps){
 #' @importFrom cli cli_inform
 #' @importFrom purrr imap
 #' @importFrom stringr str_starts
+#' @noRd
 list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
   rslt = refs %>%
     imap(~{
@@ -169,6 +156,7 @@ list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
 
 #' @importFrom dplyr cur_group filter group_by if_else mutate pull summarise
 #' @importFrom purrr modify_if
+#' @noRd
 get_inserts = function(.x, user_choice, exclude){
   if(is.null(.x)) return(NULL)
   if(nrow(.x)==0) return(NULL)
@@ -184,15 +172,12 @@ get_inserts = function(.x, user_choice, exclude){
 
 #' @importFrom glue glue
 #' @importFrom stringr str_starts
+#' @noRd
 get_lines2 = function(src_ref, imports){
-  # browser()
-  # if(.y=="unnamed_1") browser()
-  # if(is.null(imports)) return(character(0))
-  insert = glue("#' @importFrom {imports}")
   fun_c = as.character(src_ref)
-  # if(fun_c[4]=="dplyr::`%>%`") browser()
-  #
-  # cli_inform("{last(fun_c)} -> is_reexport={is_reexport(fun_c)}")
+  if(is.null(imports)) return(fun_c)
+
+  insert = glue("#' @importFrom {imports}")
 
   if(is_reexport(fun_c)){
     #TODO improve reexport management
@@ -213,6 +198,7 @@ get_lines2 = function(src_ref, imports){
 
 #' @importFrom dplyr last
 #' @importFrom stringr str_detect
+#' @noRd
 is_reexport = function(fun_c){
   last_call = last(fun_c)
   str_detect(last_call, "(\\w+):{1,3}(?!:)(.+)") &&

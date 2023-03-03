@@ -1,8 +1,4 @@
-1
 
-# get_new_file = function(file, suffix="-modif"){
-#   str_remove(file, regex("\\.[rR]")) %>% paste0(suffix, ".R")
-# }
 
 ref_names = c("first_line", "first_byte", "last_line", "last_byte", "first_column",
               "last_column", "first_parsed", "last_parsed")
@@ -11,6 +7,7 @@ ref_names = c("first_line", "first_byte", "last_line", "last_byte", "first_colum
 
 #' usethis:::write_utf8
 #' @importFrom withr defer
+#' @noRd
 write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
   stopifnot(is.character(path))
   stopifnot(is.character(lines))
@@ -25,6 +22,7 @@ write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
 
 
 #' roxygen2:::comments
+#' @noRd
 comments = function (refs) {
   srcfile <- attr(refs[[1]], "srcfile")
   com <- vector("list", length(refs))
@@ -48,6 +46,7 @@ comments = function (refs) {
 
 #' @importFrom purrr map map2
 #' @importFrom utils getSrcref
+#' @noRd
 #' @examples
 #' lines = read_lines(file)
 #' parsed = parse(text=lines, keep.source=TRUE)
@@ -80,6 +79,7 @@ get_srcref_lines = function(parsed){
 #' @param lines result of [read_lines()]
 #' @param insert line to insert
 #' @param pos insert before this position
+#' @noRd
 insert_line = function(lines, insert, pos){
   c(
     lines[seq(1, pos-1)],
@@ -89,11 +89,13 @@ insert_line = function(lines, insert, pos){
 }
 
 #' @importFrom stringr str_starts
+#' @noRd
 is_com = function(x) str_starts(x, "#+'")
 
 #' @importFrom purrr map_chr
 #' @importFrom rlang set_names
 #' @importFrom stringr regex str_extract str_starts
+#' @noRd
 set_names_ref = function(refs, warn_guess=FALSE){
   ref_names = refs %>%
     map_chr(~{
@@ -125,9 +127,9 @@ set_names_ref = function(refs, warn_guess=FALSE){
 #' @param prefer packages that should be prioritized. Usually the main package name and `.GlobalEnv`.
 #'
 #' @return a character vector of package names
-#' @noRd
 #' @importFrom purrr map_lgl
 #' @importFrom rlang set_names
+#' @noRd
 get_anywhere = function(fun, prefer){
   # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
 
@@ -146,6 +148,7 @@ get_anywhere = function(fun, prefer){
 #' @importFrom cli cli_abort
 #' @importFrom rlang is_installed
 #' @importFrom withr with_package
+#' @noRd
 is_exported = function(fun, pkg, fail=FALSE){
   if(!is_installed(pkg)){
     if(fail) cli_abort("{.pkg {pkg}} is not installed")
@@ -157,6 +160,7 @@ is_exported = function(fun, pkg, fail=FALSE){
 }
 
 #' @importFrom devtools as.package
+#' @noRd
 get_package_name = function(pkg=NULL){
   if(is.null(pkg)){
     default = devtools::as.package(".")$package
@@ -167,6 +171,7 @@ get_package_name = function(pkg=NULL){
 
 
 # https://stackoverflow.com/a/31675695/3888000
+#' @noRd
 exists2 <- function(x) {
   stopifnot(is.character(x) && length(x) == 1)
 
@@ -183,6 +188,7 @@ exists2 <- function(x) {
 
 #' @importFrom glue glue
 #' @importFrom utils menu
+#' @noRd
 user_input_packages = function(user_ask){
   title = glue("\n\nThere are {nrow(user_ask)} functions that can be imported from several packages. What do you want to do?")
   choices = c("Choose the package for each", "Choose for me please", "Abort mission")
@@ -193,6 +199,7 @@ user_input_packages = function(user_ask){
 #' @importFrom purrr map_int
 #' @importFrom stringr str_pad
 #' @importFrom utils menu
+#' @noRd
 user_input_1package = function(fun, pkg, ns){
   ni = map_int(pkg, ~sum(ns$importFrom$from==.x))
   label = glue(" ({n} function{s} imported)", n=str_pad(ni, max(nchar(ni))), s = ifelse(ni>1, "s", ""))
@@ -206,6 +213,7 @@ user_input_1package = function(fun, pkg, ns){
 #' @importFrom dplyr distinct filter
 #' @importFrom purrr list_rbind map map2
 #' @importFrom rlang set_names
+#' @noRd
 get_user_choice = function(import_list, ask, ns){
   if(!is.data.frame(import_list[[1]])){
     import_list = import_list %>% map(list_rbind)
@@ -240,7 +248,8 @@ get_user_choice = function(import_list, ask, ns){
 }
 
 
-#' @importFrom stringr regex str_remove
+#' @importFrom stringr regex
+#' @noRd
 get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
   f = str_remove(basename(file), regex("\\.[rR]"))
   rtn=paste0(path, "/", prefix, f, suffix, ".R")
@@ -251,6 +260,7 @@ get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
 }
 
 
+#' @noRd
 get_target_dir = function(path=NULL){
   tmp = file.path(tempdir(), "autoimport")
   d = getOption("autoimport_target_dir", tmp)

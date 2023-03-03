@@ -12,10 +12,9 @@
 #' @param ignore_package ignore files ending with `-package.R`
 #' @param verbose the higher, the more output printed
 #'
-#' @return
+#' @return Nothing, used for side effects.
 #' @export
 #'
-#' @examples
 #' @importFrom cli cli_abort cli_h1 cli_inform cli_warn
 #' @importFrom digest digest
 #' @importFrom dplyr desc
@@ -188,6 +187,7 @@ autoimport = function(files=dir("R/", full.names=TRUE),
 #' @importFrom purrr map
 #' @importFrom stringr str_detect
 #' @importFrom utils stack
+#' @noRd
 check_duplicated = function(ref_list, verbose) {
   dups = ref_list %>%
     map(names) %>% stack() %>%
