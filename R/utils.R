@@ -224,11 +224,12 @@ get_user_choice = function(import_list, ask, ns){
     filter(action=="ask_user") %>%
     distinct(fun, pkg)
 
+  if(nrow(user_ask)==0) return(list())
 
   if(ask){
     selected = user_input_packages(user_ask)
   } else {
-    cli_inform(c(i="Auto-attributing {nrow(user_ask)} functions imports, as {.arg ask==FALSE}"))
+    cli_inform(c(i="Automatically attributing {nrow(user_ask)} functions imports, as {.arg ask==FALSE}"), )
     selected = 2
   }
 
@@ -248,7 +249,7 @@ get_user_choice = function(import_list, ask, ns){
 }
 
 
-#' @importFrom stringr regex
+#' @importFrom stringr regex str_remove
 #' @noRd
 get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
   f = str_remove(basename(file), regex("\\.[rR]"))
