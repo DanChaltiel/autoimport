@@ -6,7 +6,7 @@
 \alias{autoimport-package}
 \title{autoimport: Automatically generate @importFrom roxygen tags}
 \description{
-A toolbox to automatically generate @importFrom roxygen tags from R files.
+A toolbox to read all R files inside a package and automatically generate @importFrom roxygen in the right place.
 }
 \seealso{
 Useful links:
