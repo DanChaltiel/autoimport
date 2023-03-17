@@ -24,21 +24,21 @@ write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
 #' roxygen2:::comments
 #' @noRd
 comments = function (refs) {
-  srcfile <- attr(refs[[1]], "srcfile")
-  com <- vector("list", length(refs))
+  srcfile = attr(refs[[1]], "srcfile")
+  com = vector("list", length(refs))
   for (i in seq_along(refs)) {
     if (i == 1) {
-      first_byte <- 1
-      first_line <- 1
+      first_byte = 1
+      first_line = 1
     }
     else {
-      first_byte <- refs[[i - 1]][4]     #modif: not +1
-      first_line <- refs[[i - 1]][3] + 1 #modif: +1
+      first_byte = refs[[i - 1]][4]     #modif: not +1
+      first_line = refs[[i - 1]][3] + 1 #modif: +1
     }
-    last_line <- refs[[i]][3]
-    last_byte <- refs[[i]][4]
-    lloc <- c(first_line, first_byte, last_line, last_byte)
-    com[[i]] <- srcref(srcfile, lloc)
+    last_line = refs[[i]][3]
+    last_byte = refs[[i]][4]
+    lloc = c(first_line, first_byte, last_line, last_byte)
+    com[[i]] = srcref(srcfile, lloc)
   }
   com
 }
@@ -104,7 +104,7 @@ set_names_ref = function(refs, warn_guess=FALSE){
       src = src[!str_starts(src, "#")]
       src = src[nzchar(src)]
       fun = paste(src, collapse="\n")
-      fun_name = str_extract(fun, regex("`?(.*?)`? *(?:=|<-) *function.*"), group=TRUE)
+      fun_name = str_extract(fun, regex("`?(.*?)`? *(?:=|=) *function.*"), group=TRUE)
       # if(is.na(fun_name)){
       #   if(warn_guess) {
       #     cli_warn(c("Could not guess function name in code:", i="{.code {src}}"))
@@ -172,10 +172,10 @@ get_package_name = function(pkg=NULL){
 
 # https://stackoverflow.com/a/31675695/3888000
 #' @noRd
-exists2 <- function(x) {
+exists2 = function(x) {
   stopifnot(is.character(x) && length(x) == 1)
 
-  split <- strsplit(x, "::")[[1]]
+  split = strsplit(x, "::")[[1]]
 
   if (length(split) == 1) {
     exists(split[1])
@@ -186,67 +186,6 @@ exists2 <- function(x) {
   }
 }
 
-#' @importFrom glue glue
-#' @importFrom utils menu
-#' @noRd
-user_input_packages = function(user_ask){
-  title = glue("\n\nThere are {nrow(user_ask)} functions that can be imported from several packages. What do you want to do?")
-  choices = c("Choose the package for each", "Choose for me please", "Abort mission")
-  menu(choices=choices, title=title)
-}
-
-#' @importFrom glue glue
-#' @importFrom purrr map_int
-#' @importFrom stringr str_pad
-#' @importFrom utils menu
-#' @noRd
-user_input_1package = function(fun, pkg, ns){
-  ni = map_int(pkg, ~sum(ns$importFrom$from==.x))
-  label = glue(" ({n} function{s} imported)", n=str_pad(ni, max(nchar(ni))), s = ifelse(ni>1, "s", ""))
-  label[pkg=="base"] = ""
-  title = glue("`{fun}()` can be found in several packages.\n From which one do you want to import it:")
-  choices = glue("{pkg}{label}")
-  menu(choices=choices, title=title)
-}
-
-#' @importFrom cli cli_inform
-#' @importFrom dplyr distinct filter
-#' @importFrom purrr list_rbind map map2
-#' @importFrom rlang set_names
-#' @noRd
-get_user_choice = function(import_list, ask, ns){
-  if(!is.data.frame(import_list[[1]])){
-    import_list = import_list %>% map(list_rbind)
-  }
-
-  user_ask = import_list %>%
-    list_rbind(names_to="parent_fun") %>%
-    filter(action=="ask_user") %>%
-    distinct(fun, pkg)
-
-  if(nrow(user_ask)==0) return(list())
-
-  if(ask){
-    selected = user_input_packages(user_ask)
-  } else {
-    cli_inform(c(i="Automatically attributing {nrow(user_ask)} functions imports, as {.arg ask==FALSE}"), )
-    selected = 2
-  }
-
-  if(selected==0 || selected==3){
-    stop("abort mission")
-  }
-  user_asked = user_ask$fun %>%
-    set_names() %>%
-    map2(user_ask$pkg, ~{
-      i = 1
-      if(selected==1) i = user_input_1package(.x, .y, ns)
-      if(i==0) return(NA)
-      .y[i]
-    })
-
-  user_asked
-}
 
 
 #' @importFrom stringr regex str_remove
