@@ -4,7 +4,7 @@
 \alias{import_review}
 \alias{review_files}
 \alias{import_review_bg}
-\title{Change management}
+\title{Decision management}
 \source{
 shamelessly inspired by testthat::snapshot_review()
 }
@@ -17,6 +17,8 @@ import_review_bg(data_files = review_files())
 }
 \arguments{
 \item{data_files}{result of \code{review_files()}}
+
+\item{path}{mostly used for tests}
 }
 \description{
 \itemize{
