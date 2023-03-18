@@ -17,14 +17,13 @@
 #'
 #' @importFrom cli cli_abort cli_h1 cli_inform cli_warn
 #' @importFrom digest digest
-#' @importFrom dplyr desc
 #' @importFrom glue glue
 #' @importFrom purrr imap map map_depth pmap
 #' @importFrom rlang set_names
 #' @importFrom stringr str_ends str_replace
 #' @importFrom tibble tibble
 #' @importFrom utils getSrcref
-autoimport = function(files=dir("R/", full.names=TRUE),
+autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
                       pkg_name=get_package_name(),
                       namespace_file="./NAMESPACE",
                       description_file="./DESCRIPTION",
@@ -35,22 +34,36 @@ autoimport = function(files=dir("R/", full.names=TRUE),
   ns = parse_namespace(namespace_file)
   deps = desc::desc(file=description_file)$get_deps()
 
-  if(!interactive()){
-    cli_abort("Only interactive!")
-  }
-  if (any(!file.exists(files))) {
+  if(any(!file.exists(files))){
     cli_abort("Couldn't find file{?s} {.file {files[!file.exists(files)]}}")
   }
-  if (any(!str_ends(files, "\\.[Rr]"))) {
-    cli_warn("expecting *.R file, will try to proceed.")
-  }
+
   files = set_names(files)
-
-  if(verbose>0) cli_h1("Reading")
-
   lines_list = map(files, read_lines)
-  digest_list = map(files, digest::digest, file=TRUE)
 
+  ai_read = autoimport_read(lines_list, verbose)
+  ai_parse = autoimport_parse(ai_read$ref_list, cache_dir, use_cache, pkg_name,
+                              ns, deps, ask, verbose)
+  ai_write = autoimport_write(ai_parse$import_list, ai_read$ref_list, lines_list,
+                              ai_parse$user_choice, ignore_package,
+                              pkg_name, target_dir, verbose)
+
+
+  cli_h1("Finished")
+
+  cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
+               i="{.run autoimport::import_review()}"))
+
+  invisible(TRUE)
+}
+
+
+# Utils ---------------------------------------------------------------------------------------
+
+
+
+autoimport_read <- function(lines_list, verbose) {
+  if(verbose>0) cli_h1("Reading")
 
   ref_list = lines_list %>%
     imap(function(lines, file){
@@ -61,13 +74,22 @@ autoimport = function(files=dir("R/", full.names=TRUE),
     })
   tot_lines = sum(lengths(lines_list))
   tot_refs = sum(lengths(ref_list))
-  if(verbose>0) cli_inform(c(v="Found a total of {tot_refs} internal functions in {length(files)} files ({tot_lines} lines)."))
+  if(verbose>0) cli_inform(c(v="Found a total of {tot_refs} internal functions in {length(lines_list)} files ({tot_lines} lines)."))
 
   check_duplicated(ref_list, verbose)
+  lst(ref_list)
+}
 
 
+
+
+autoimport_parse <- function(ref_list, cache_dir, use_cache, pkg_name, ns, deps, ask, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
+
+  files = names(ref_list) %>% set_names()
+
+  digest_list = map(files, digest, file=TRUE)
 
   cache_list = files %>% map(~{
     filename = basename(.x) %>% str_replace("\\.R|r$", ".rds")
@@ -76,19 +98,17 @@ autoimport = function(files=dir("R/", full.names=TRUE),
     readRDS(path)
   })
 
-  cache_list %>%
-    imap(~{
-      dig = digest::digest(.y, file=TRUE)
-      identical(dig, .x$dig)
-    })
+  # cache_list %>%
+  #   imap(~{
+  #     dig = digest::digest(.y, file=TRUE)
+  #     identical(dig, .x$dig)
+  #   })
   #TODO on pourrait même faire un cache au niveau du digest de la ref elle-même!
 
   import_list = list(ref=ref_list, cache=cache_list, file=files) %>%
     pmap(~{
       l=list(...)
       ref=l$ref;cache=l$cache;file=l$file
-      # names(l)
-      # browser()
       if(verbose>1) cli_inform(c(">"="File {.file {file}}"))
 
       filename = basename(file) %>% str_replace("\\.R|r$", ".rds")
@@ -98,12 +118,18 @@ autoimport = function(files=dir("R/", full.names=TRUE),
       if(isTRUE(use_cache) && !is.null(cache) && dig==cache$dig){
         rtn = cache$cache
         if(verbose>1){
+          s = rtn %>% map_dbl(nrow) %>% sum()
           cli_inform(c("!"="Reading cache",
-                       "i"="Found {length(rtn)} function{?s} or code chunk{?s}"))
+                       "i"="Found {s} function{?s} to import in {length(rtn)} function{?s} or code chunk{?s}."))
         }
       } else {
         rtn = list_importFrom(ref, pkg_name=pkg_name, ns=ns, deps=deps, verbose=verbose>1) #long call
-        if(verbose>1) cli_inform(c("!"="Updating cache"))
+        # if(verbose>1) cli_inform(c("!"="Updating cache"))
+        if(verbose>1){
+          s = rtn %>% map_dbl(nrow) %>% sum()
+          cli_inform(c("!"="Updating cache",
+                       "i"="Found {s} function{?s} to import in {length(rtn)} function{?s} or code chunk{?s}."))
+        }
         saveRDS(list(dig=dig, cache=rtn), cache_path)
       }
 
@@ -116,7 +142,14 @@ autoimport = function(files=dir("R/", full.names=TRUE),
 
   user_choice = get_user_choice(import_list, ask=ask, ns=ns)
 
+  lst(import_list, user_choice)
+}
 
+
+
+
+autoimport_write <- function(import_list, ref_list, lines_list, user_choice, ignore_package,
+                             pkg_name, target_dir, verbose) {
 
   if(verbose>0) cli_h1("Writing")
 
@@ -147,13 +180,10 @@ autoimport = function(files=dir("R/", full.names=TRUE),
 
       n_new = setdiff(lines2, lines) %>% length()
       n_old = setdiff(lines, lines2) %>% length()
-      # out = name_fun(file)
       out = file.path(target_dir, basename(file))
 
       write_utf8(out, lines2)
 
-      # if(verbose>1) cli_inform(c(v="Added {n_new} and removed {n_old} line{?s} from {.file {file}} to write {.file {out}}."))
-      # else
       if(verbose>0) cli_inform(c(v="Added {n_new} and removed {n_old} line{?s} from {.file {file}}."))
 
       glue('{{.run diffviewer::visual_diff("{file}", "{out}")}}')
@@ -161,22 +191,7 @@ autoimport = function(files=dir("R/", full.names=TRUE),
     }
   )
 
-  cli_h1("Finished")
-
-  # cli_h2("Diffview")
-  # cmd = diffs %>% discard(is.null) %>% unlist() %>% set_names("i")
-  # f = diffs %>% list_rbind() %>% pull(file) %>% unlist()
-  # cmd = glue('{{.run autoimport::import_review("{cmd}")}}') %>% set_names("i")
-  cli_inform(c(v="Run this code to view the diff and choose whether or not accepting the changes:",
-               i="{.run autoimport::import_review()}"))
-  # cli_inform(cmd)
-
-  # cli_h2("Accept")
-  # cmd2 = cmd %>% str_replace("autoimport::import_review", "autoimport::import_accept")
-  # cli_inform(c(v="Run these commands to accept:"))
-  # cli_inform(cmd2)
-
-  invisible(TRUE)
+  diffs
 }
 
 
@@ -203,3 +218,4 @@ check_duplicated = function(ref_list, verbose) {
   }
   TRUE
 }
+
