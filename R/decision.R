@@ -1,6 +1,6 @@
 
 
-#' Change management
+#' Decision management
 #'
 #' * `import_review()` opens a Shiny app that shows a visual diff of each modified file.
 #' * `import_review_bg()` opens the Shiny app in a background job so that you can keep working. Disclaimer: this can bloat your stack call!
@@ -25,7 +25,9 @@ import_review = function(data_files=review_files()) {
   invisible()
 }
 
+#'
 #' @rdname import_review
+#' @param path mostly used for tests
 #' @description NULL
 #' @export
 #' @importFrom checkmate assert_file_exists
@@ -63,9 +65,8 @@ import_review_bg = function(data_files=review_files()){
 
 #' @importFrom cli cli_inform
 #' @importFrom diffviewer visual_diff visual_diff_output visual_diff_render
-#' @importFrom htmltools div
 #' @importFrom rlang set_names
-#' @importFrom shiny actionButton fluidPage fluidRow observeEvent paneViewer reactive runApp selectInput shinyApp stopApp updateSelectInput
+#' @importFrom shiny actionButton div fluidPage fluidRow observeEvent paneViewer reactive runApp selectInput shinyApp stopApp updateSelectInput
 #' @noRd
 review_app = function(data_files){
   case_index = seq_along(data_files$files) %>% set_names(data_files$files)
@@ -119,8 +120,7 @@ review_app = function(data_files){
       i = next_case()
       shiny::updateSelectInput(session, "cases",
                                choices = case_index[!handled],
-                               selected = i
-      )
+                               selected = i)
     }
     next_case = function(){
       if(all(handled)){
@@ -131,7 +131,8 @@ review_app = function(data_files){
       # Find next case;
       remaining = case_index[!handled]
       next_cases = which(remaining > i())
-      if (length(next_cases) == 0) remaining[[1]] else remaining[[next_cases[[1]]]]
+      x = if(length(next_cases)==0) 1 else next_cases[[1]]
+      remaining[[x]]
     }
   }
 
