@@ -160,6 +160,8 @@ list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
 get_inserts = function(.x, user_choice, exclude){
   if(is.null(.x)) return(NULL)
   if(nrow(.x)==0) return(NULL)
+
+  user_choice = deframe(user_choice) %>% as.list()
   .x %>%
     mutate(
       tmp = user_choice[fun] %>% modify_if(is.null, ~"error"),
