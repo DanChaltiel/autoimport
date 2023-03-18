@@ -15,14 +15,10 @@
 #' @return Nothing, used for side effects.
 #' @export
 #'
-#' @importFrom cli cli_abort cli_h1 cli_inform cli_warn
-#' @importFrom digest digest
-#' @importFrom glue glue
-#' @importFrom purrr imap map map_depth pmap
+#' @importFrom cli cli_abort cli_h1 cli_inform
+#' @importFrom dplyr desc
+#' @importFrom purrr map
 #' @importFrom rlang set_names
-#' @importFrom stringr str_ends str_replace
-#' @importFrom tibble tibble
-#' @importFrom utils getSrcref
 autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
                       pkg_name=get_package_name(),
                       namespace_file="./NAMESPACE",
@@ -62,6 +58,10 @@ autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
 
 
 
+#' @importFrom cli cli_h1 cli_inform
+#' @importFrom purrr imap
+#' @importFrom tibble lst
+#' @importFrom utils getSrcref
 autoimport_read <- function(lines_list, verbose) {
   if(verbose>0) cli_h1("Reading")
 
@@ -83,6 +83,11 @@ autoimport_read <- function(lines_list, verbose) {
 
 
 
+#' @importFrom cli cli_h1 cli_inform
+#' @importFrom purrr map map_dbl map_depth pmap
+#' @importFrom rlang set_names
+#' @importFrom stringr str_replace
+#' @importFrom tibble lst
 autoimport_parse <- function(ref_list, cache_dir, use_cache, pkg_name, ns, deps, ask, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
@@ -148,6 +153,11 @@ autoimport_parse <- function(ref_list, cache_dir, use_cache, pkg_name, ns, deps,
 
 
 
+#' @importFrom cli cli_h1 cli_inform
+#' @importFrom glue glue
+#' @importFrom purrr imap map pmap
+#' @importFrom stringr str_ends
+#' @importFrom tibble tibble
 autoimport_write <- function(import_list, ref_list, lines_list, user_choice, ignore_package,
                              pkg_name, target_dir, verbose) {
 
@@ -218,4 +228,3 @@ check_duplicated = function(ref_list, verbose) {
   }
   TRUE
 }
-

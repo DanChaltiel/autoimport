@@ -1,16 +1,18 @@
 
-#' Update the IMPORTLIST file
+#' Update the `IMPORTLIST` file
 #'
-#' Update the IMPORTLIST file in order
+#' Update the `IMPORTLIST` file, which forces the import of some packages without asking.
 #'
-#' @param user_asked
-#' @param target the path
+#' @param imports a list of imports with `key=function` and `value=package`
+#' @param target path to the `IMPORTLIST` file
 #'
-#' @return
+#' @return nothing
 #' @export
 #'
-#' @examples
-update_importlist = function(user_asked, path=NULL){
+#' @importFrom cli cli_inform
+#' @importFrom tibble deframe
+#' @importFrom utils modifyList
+update_importlist = function(imports, path=NULL){
   if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
   # file = file.path(root, "inst/IMPORTLIST")
   # path = normalizePath(path, mustWork = FALSE)
@@ -19,7 +21,7 @@ update_importlist = function(user_asked, path=NULL){
     file.create(path)
   }
   old_imports = get_importlist(root) %>% deframe() %>% as.list()
-  new_imports = user_asked %>% deframe() %>% as.list()
+  new_imports = imports %>% deframe() %>% as.list()
   if(length(new_imports)==0){
     cli::cli_inform(c(i="No change needed to {.file inst/IMPORTLIST}"))
     return(FALSE)
@@ -35,6 +37,9 @@ update_importlist = function(user_asked, path=NULL){
 
 
 #' @rdname update_importlist
+#' @importFrom checkmate assert
+#' @importFrom purrr map map_chr
+#' @importFrom tibble tibble
 get_importlist = function(target=NULL){
   if(is.null(target)) target = getOption("autoimport_importlist", "inst/IMPORTLIST")
   if(!file.exists(target)) return(NULL)

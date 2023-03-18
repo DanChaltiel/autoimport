@@ -1,8 +1,8 @@
 
-#' @importFrom cli cli_inform
-#' @importFrom dplyr distinct filter
-#' @importFrom purrr list_rbind map map2
-#' @importFrom rlang set_names
+#' @importFrom cli cli_h1 cli_inform
+#' @importFrom dplyr bind_rows distinct filter left_join mutate select
+#' @importFrom purrr list_rbind map map2_chr
+#' @importFrom tibble deframe
 #' @noRd
 get_user_choice = function(import_list, ask, ns){
   if(!is.data.frame(import_list[[1]])){
@@ -89,6 +89,8 @@ user_input_1package = function(fun, pkg, ns, rtnVal=FALSE){
 }
 
 
+#' @importFrom glue glue
+#' @importFrom utils menu
 ask_update_importlist = function(user_asked){
   # if(is.data.frame(user_asked)) user_asked=deframe(user_asked) %>% as.list()
   # title = glue("\n\nDo you want to save your choices about these {length(user_asked)} functions in `inst/IMPORTLIST`?")
@@ -100,5 +102,3 @@ ask_update_importlist = function(user_asked){
   }
   invisible(NULL)
 }
-
-
