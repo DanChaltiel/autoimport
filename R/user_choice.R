@@ -17,19 +17,20 @@ get_user_choice = function(import_list, ask, ns){
 
   if(nrow(unsure_funs)==0) return(list())
 
+  # browser()
   cli_h1("Attributing")
 
   defined_funs = unsure_funs %>%
     filter(!is.na(pref_pkg))
-  undefined_funs = unsure_funs %>%
-    filter(is.na(pref_pkg))
-
   if(nrow(defined_funs)>0){
     cli_inform(c(i="Automatically attributing {nrow(defined_funs)} functions imports
                     from {.file inst/IMPORTLIST}"))
     rtn = defined_funs %>% select(fun, package=pref_pkg)
   }
 
+  undefined_funs = unsure_funs %>%
+    filter(is.na(pref_pkg))
+  if(nrow(undefined_funs)==0) return(rtn)
 
   if(ask){
     selected = user_input_packages(undefined_funs)
