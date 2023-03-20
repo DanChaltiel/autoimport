@@ -47,10 +47,17 @@ autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
 
   cli_h1("Finished")
 
-  cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
-               i="{.run autoimport::import_review()}"))
+  data_files = review_files()
+  if(!any(data_files$changed)){
+    cli_inform(c(v="No changes to review."))
+    rtn = FALSE
+  } else {
+    cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
+                 i="{.run autoimport::import_review()}"))
+    rtn = TRUE
+  }
 
-  invisible(TRUE)
+  invisible(rtn)
 }
 
 
