@@ -7,12 +7,12 @@
 \usage{
 update_importlist(imports, path = NULL)
 
-get_importlist(target = NULL)
+get_importlist(path = NULL)
 }
 \arguments{
 \item{imports}{a list of imports with \verb{key=function} and \code{value=package}}
 
-\item{target}{path to the \code{IMPORTLIST} file}
+\item{path}{path to the \code{IMPORTLIST} file}
 }
 \value{
 nothing

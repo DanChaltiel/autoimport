@@ -4,7 +4,7 @@
 #' Update the `IMPORTLIST` file, which forces the import of some packages without asking.
 #'
 #' @param imports a list of imports with `key=function` and `value=package`
-#' @param target path to the `IMPORTLIST` file
+#' @param path path to the `IMPORTLIST` file
 #'
 #' @return nothing
 #' @export
@@ -14,13 +14,12 @@
 #' @importFrom utils modifyList
 update_importlist = function(imports, path=NULL){
   if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
-  # file = file.path(root, "inst/IMPORTLIST")
   # path = normalizePath(path, mustWork = FALSE)
   if(!file.exists(path)){
     dir.create(dirname(path))
     file.create(path)
   }
-  old_imports = get_importlist(root) %>% deframe() %>% as.list()
+  old_imports = get_importlist(path) %>% deframe() %>% as.list()
   new_imports = imports %>% deframe() %>% as.list()
   if(length(new_imports)==0){
     cli::cli_inform(c(i="No change needed to {.file inst/IMPORTLIST}"))
@@ -40,13 +39,13 @@ update_importlist = function(imports, path=NULL){
 #' @importFrom checkmate assert
 #' @importFrom purrr map map_chr
 #' @importFrom tibble tibble
-get_importlist = function(target=NULL){
-  if(is.null(target)) target = getOption("autoimport_importlist", "inst/IMPORTLIST")
-  if(!file.exists(target)) return(NULL)
+get_importlist = function(path=NULL){
+  if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
+  if(!file.exists(path)) return(NULL)
 
-  lines = readLines(target, warn=FALSE, encoding="UTF-8") %>%
-    map(str_split_1, "=") %>%
-    map(str_squish)
+  lines = readLines(path, warn=FALSE, encoding="UTF-8") %>%
+    map(~str_split_1(.x, "=")) %>%
+    map(~str_squish(.x))
   checkmate::assert(all(lengths(lines)==2))
 
   #TODO check that file is correct and warn for xxx=unkwown_package
