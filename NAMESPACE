@@ -2,7 +2,6 @@
 
 export(autoimport)
 export(import_review)
-export(import_review_bg)
 export(review_files)
 export(update_importlist)
 importFrom(callr,r_bg)
