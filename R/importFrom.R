@@ -36,7 +36,7 @@ parse_namespace = function(file){
 #' @param pkg_name package name (character)
 #' @param ns result of `parse_namespace()`
 #' @importFrom dplyr arrange desc distinct filter mutate pull
-#' @importFrom purrr map map_int map2_lgl
+#' @importFrom purrr map map_chr map_int map2_lgl
 #' @importFrom tibble as_tibble_col
 #' @importFrom tidyr unchop
 #' @importFrom utils getParseData
@@ -48,20 +48,27 @@ parse_ref = function(ref, pkg_name, ns, deps){
   nms = pd$text[pd$token == "SYMBOL_FUNCTION_CALL"]
   if(length(nms)==0) return(NULL)
 
+  imported_from = function(fun, ns){
+    x=ns$importFrom$from[ns$importFrom$what==fun]
+    if(length(x)==0) x=NA
+    x
+  }
+
   loc = nms %>%
     as_tibble_col(column_name="fun") %>%
-    mutate(pkg = map(fun, ~get_anywhere(.x, prefer=c(pkg_name, ".GlobalEnv")))) %>%
-    unchop(pkg, keep_empty=TRUE) %>%
+    mutate(pkg_bak = map(fun, ~get_anywhere(.x, prefer=c(pkg_name, ".GlobalEnv")))) %>%
+    unchop(pkg_bak, keep_empty=TRUE) %>%
     mutate(
+      pkg = map_chr(fun, ~imported_from(.x, ns)),
+      pkg = ifelse(is.na(pkg), pkg_bak, pkg),
       label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
       pkg_in_desc = pkg %in% deps$package,
       pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
-      fun_internal = map2_lgl(pkg, fun, ~{any(ns$importFrom$what==.y)}),
-      # fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$what==.y)}),
       fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$from==.x & ns$importFrom$what==.y)}),
     ) %>%
-    distinct() %>%
+    distinct(label, .keep_all=TRUE) %>%
     arrange(fun, desc(fun_imported), desc(pkg_n_imports), pkg_in_desc)
+
   loc
 }
 
@@ -77,17 +84,18 @@ empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character
 #' @noRd
 parse_function = function(ref, pkg_name, ns, deps){
   loc = parse_ref(ref, pkg_name, ns, deps)
-  # if(is.null(loc)) browser()
   if(is.null(loc)) return(empty_ref)
   if(nrow(loc)==0) return(loc)
-  # .x=loc %>% filter(fun=="stop")
-  # browser()
+
   rslt = loc %>%
     split(.$fun) %>%
     imap(~{
       rtn = list(.x$pkg)
       action = "nothing"
-      # if(.y=="get_inserts") browser()
+
+      ###-- TESTING --###
+      # if(.y=="div") browser()
+
       if(nrow(.x)==1) {
         if(is.na(.x$pkg)) {
           action = "warn"
@@ -99,6 +107,7 @@ parse_function = function(ref, pkg_name, ns, deps){
         } else if(isTRUE(.x$fun_imported)) {
           reason = glue("`{.x$label}()` is unique and already imported.")
         # } else if(isFALSE(.x$pkg_in_desc)) {
+        #TODO warning si pas dans description
         #   action = "add_description"
         #   reason = glue("`{.y}()` only found in package `{.x$pkg}`,
         #                     but your should add it to DESCRIPTION first.")
@@ -113,7 +122,6 @@ parse_function = function(ref, pkg_name, ns, deps){
 
         if(nrow(imported)>1) {
           dups = .x %>% filter(fun_imported) %>% pull(label)
-          # browser()
           cli_warn(c("There are duplicates in NAMESPACE??", i="Functions: {.fun {dups}}"))
         } else if(nrow(imported)==1){
           rtn = list(imported$pkg)
@@ -156,6 +164,7 @@ list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
 
 #' @importFrom dplyr cur_group filter group_by if_else mutate pull summarise
 #' @importFrom purrr modify_if
+#' @importFrom tibble deframe
 #' @noRd
 get_inserts = function(.x, user_choice, exclude){
   if(is.null(.x)) return(NULL)
