@@ -7,7 +7,8 @@
 #
 
 
-#' because base::parseNamespaceFile() is not very handy
+#' because base::parseNamespaceFile() is not very handy for my use.
+#' @importFrom cli cli_abort
 #' @importFrom dplyr filter
 #' @importFrom readr read_lines
 #' @importFrom tibble as_tibble
@@ -24,6 +25,16 @@ parse_namespace = function(file){
 
   rtn$importFrom = rtn$importFrom %>%
     separate_wider_delim(value, names=c("from", "what"), delim=",")
+
+  if(anyDuplicated(rtn$importFrom$what)!=0){
+    x = rtn$importFrom %>%
+      filter(what %in% what[duplicated(what)]) %>%
+      arrange(what, from)
+    label = paste(x$from, x$what, sep="::")
+    cli_abort(c("Duplicate `importFrom` mention in {.file {file}}",
+                i="{.fun {label}}"),
+              class="autoimport_namespace_dup")
+  }
   # rtn$import = rtn$import %>%
   #   rename(from=value)
   rtn
