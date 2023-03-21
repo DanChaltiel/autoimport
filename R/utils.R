@@ -24,20 +24,19 @@ write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
 #' roxygen2:::comments
 #' @noRd
 comments = function (refs) {
+  stopifnot(length(map(refs, ~attr(.x, "srcfile")) %>% unique())==1)
   srcfile = attr(refs[[1]], "srcfile")
+
   com = vector("list", length(refs))
   for (i in seq_along(refs)) {
     if (i == 1) {
-      first_byte = 1
       first_line = 1
-    }
-    else {
-      first_byte = refs[[i - 1]][4]     #modif: not +1
+    } else {
       first_line = refs[[i - 1]][3] + 1 #modif: +1
     }
     last_line = refs[[i]][3]
     last_byte = refs[[i]][4]
-    lloc = c(first_line, first_byte, last_line, last_byte)
+    lloc = c(first_line, first_byte=1, last_line, last_byte)
     com[[i]] = srcref(srcfile, lloc)
   }
   com
