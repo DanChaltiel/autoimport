@@ -69,7 +69,7 @@ autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
 #' @importFrom purrr imap
 #' @importFrom tibble lst
 #' @importFrom utils getSrcref
-autoimport_read <- function(lines_list, verbose) {
+autoimport_read = function(lines_list, verbose) {
   if(verbose>0) cli_h1("Reading")
 
   ref_list = lines_list %>%
@@ -95,7 +95,7 @@ autoimport_read <- function(lines_list, verbose) {
 #' @importFrom rlang set_names
 #' @importFrom stringr str_replace
 #' @importFrom tibble lst
-autoimport_parse <- function(ref_list, cache_dir, use_cache, pkg_name, ns, deps, ask, verbose) {
+autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns, deps, ask, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
 
@@ -117,16 +117,16 @@ autoimport_parse <- function(ref_list, cache_dir, use_cache, pkg_name, ns, deps,
   #   })
   #TODO on pourrait même faire un cache au niveau du digest de la ref elle-même!
 
-  import_list = list(ref=ref_list, cache=cache_list, file=files) %>%
-    pmap(~{
-      l=list(...)
-      ref=l$ref;cache=l$cache;file=l$file
-      if(verbose>1) cli_inform(c(">"="File {.file {file}}"))
+  import_list = files %>%
+    map(~{
+      ref = ref_list[[.x]]
+      cache = cache_list[[.x]]
+      dig = digest_list[[.x]]
+      if(verbose>1) cli_inform(c(">"="File {.file {.x}}"))
 
-      filename = basename(file) %>% str_replace("\\.R|r$", ".rds")
+      filename = basename(.x) %>% str_replace("\\.R|r$", ".rds")
       cache_path = file.path(cache_dir, filename)
 
-      dig = digest_list[[file]]
       if(isTRUE(use_cache) && !is.null(cache) && dig==cache$dig){
         rtn = cache$cache
         if(verbose>1){
@@ -165,7 +165,7 @@ autoimport_parse <- function(ref_list, cache_dir, use_cache, pkg_name, ns, deps,
 #' @importFrom purrr imap map pmap
 #' @importFrom stringr str_ends
 #' @importFrom tibble tibble
-autoimport_write <- function(import_list, ref_list, lines_list, user_choice, ignore_package,
+autoimport_write = function(import_list, ref_list, lines_list, user_choice, ignore_package,
                              pkg_name, target_dir, verbose) {
 
   if(verbose>0) cli_h1("Writing")
