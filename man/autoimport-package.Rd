@@ -2,8 +2,8 @@
 % Please edit documentation in R/autoimport-package.R
 \docType{package}
 \name{autoimport-package}
-\alias{autoimport}
 \alias{autoimport-package}
+\alias{_PACKAGE}
 \title{autoimport: Automatically generate @importFrom roxygen tags}
 \description{
 A toolbox to read all R files inside a package and automatically generate @importFrom roxygen in the right place.
