@@ -8,6 +8,7 @@ get_user_choice = function(import_list, ask, ns){
   if(!is.data.frame(import_list[[1]])){
     import_list = import_list %>% map(list_rbind)
   }
+
   pref_importlist = get_importlist()
   unsure_funs = import_list %>%
     list_rbind(names_to="parent_fun") %>%
@@ -17,15 +18,16 @@ get_user_choice = function(import_list, ask, ns){
 
   if(nrow(unsure_funs)==0) return(list())
 
-  # browser()
   cli_h1("Attributing")
-
+  rtn = list()
   defined_funs = unsure_funs %>%
     filter(!is.na(pref_pkg))
   if(nrow(defined_funs)>0){
     cli_inform(c(i="Automatically attributing {nrow(defined_funs)} functions imports
                     from {.file inst/IMPORTLIST}"))
-    rtn = defined_funs %>% select(fun, package=pref_pkg)
+    rtn = defined_funs %>% select(fun, package=pref_pkg) %>%
+      deframe() %>%
+      as.list()
   }
 
   undefined_funs = unsure_funs %>%
@@ -54,12 +56,9 @@ get_user_choice = function(import_list, ask, ns){
 
   ask_update_importlist(user_asked)
 
-
   rtn = bind_rows(rtn, user_asked) %>%
     deframe() %>%
     as.list()
-
-
   rtn
 }
 
