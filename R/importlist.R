@@ -41,7 +41,7 @@ update_importlist = function(imports, path=NULL){
 #' @importFrom tibble tibble
 get_importlist = function(path=NULL){
   if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
-  if(!file.exists(path)) return(NULL)
+  if(!file.exists(path)) return(tibble(fun=NA, pref_pkg=NA))
 
   lines = readLines(path, warn=FALSE, encoding="UTF-8") %>%
     map(~str_split_1(.x, "=")) %>%
