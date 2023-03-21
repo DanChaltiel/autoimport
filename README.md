@@ -36,12 +36,52 @@ devtools::install_github("DanChaltiel/autoimport")
 
 ## Getting started
 
-TODO
+Simply run the function!
+
+```{r}
+autoimport()
+```
+
+The first run will take some time, but a cache system is implemented so that next runs are faster.
+
+Then, you can see the diff using a shiny app:
+
+```{r}
+import_review()
+```
+
+## Limits
+
+Autoimport is based on `utils::getSrcref()` and share the same limits. 
+
+Therefore it wont recognize as functions and try to remove imports of: 
+
+- operators (`@importFrom dplyr %>%`, `@importFrom rlang :=`, ...).
+
+- functions called by name (e.g. `my_fun` in `sapply(x, my_fun)`).
+
+The best way to avoid this problem is to put these imports in your package-level documentation, as this file is ignored by default (`ignore_package=TRUE`).
+
+Remember that `usethis::use_package_doc()` and `usethis::use_pipe()` are your friends!
+
+## Algorithm
+
+When trying to figure out which package to import a function from, `autoimport()` follow this algorithm:
+
+-   If the function is already mentioned in NAMESPACE, use the package
+-   Else, if the function is only exported by one package, use this package
+-   Else, ask the user from which package to import the function
+-   Else, warn that the function was not found
+
+Note that this algorithm is still a bit experimental and that I could only test it on my few own packages. Any feedback is more than welcome!
+
 
 ## Style
 
 As I couldn't find any standardized guideline about the right order of `roxygen2` tags, `autoimport` puts them:
 
 -   in place of the first @importFrom tag if there is one
+
+-   **TODO** just before examples if there are some
 
 -   just before the function call otherwise
