@@ -88,6 +88,7 @@ user_input_1package = function(fun, pkg, ns, rtnVal=FALSE){
 }
 
 
+#' @importFrom cli cli_inform
 #' @importFrom glue glue
 #' @importFrom utils menu
 ask_update_importlist = function(user_asked){

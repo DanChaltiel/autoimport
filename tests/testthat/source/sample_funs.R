@@ -18,13 +18,14 @@
 #' @importFrom forcats as_factor
 #'
 
+#
 f1 = function(x){
-  x = lubridate::date(x)
+  x = date(x)
   x = mutate(x, a=0)
   x = write_utf8(x, a=0)
   x = filter(x, TRUE)
   x = select(x, TRUE)
-  x = bmr.schofield(all(x), TRUE)
+  x = knitr::asis_output(all(x), TRUE)
   x = "#' @importFrom dplyr mutate"
   f = function(a) a
   x = dezdezde(x, TRUE)
@@ -35,8 +36,12 @@ f1 = function(x){
 
 #' Title f2
 #'
+#' This is f2
+#'
 #' @return ee
 #' @export
+#' @examples
+#' x=1
 f2 <- function(x){
   x = select(x, TRUE)
   stop("ok")

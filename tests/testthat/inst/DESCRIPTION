@@ -1,13 +1,13 @@
 Package: autoimport
 Version: 0.0.1.9000
-Title: Automatically generate @importFrom roxygen tags
+Title: Just for tests
 Authors@R: 
     c(person(given = "Dan",
              family = "Chaltiel",
              role = c("aut", "cre"),
              email = "dan.chaltiel@gmail.com",
              comment = c(ORCID = "0000-0003-3488-779X")))
-Description: A toolbox to automatically generate @importFrom roxygen tags from R files.
+Description: Just for tests
 License: GPL-3
 URL: https://github.com/DanChaltiel/autoimport
 BugReports: https://github.com/DanChaltiel/autoimport/issues
