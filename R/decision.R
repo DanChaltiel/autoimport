@@ -2,17 +2,20 @@
 
 #' Decision management
 #'
-#' * `import_review()` opens a Shiny app that shows a visual diff of each modified file.
-#' * `import_review_bg()` opens the Shiny app in a background job so that you can keep working. Disclaimer: this can bloat your stack call!
-#' * `review_files()` is a helper you probably won't need
+#' `import_review()` opens a Shiny app that shows a visual diff of each modified file. \cr
+#' `review_files()` is a helper you probably won't ever use directly.
 #'
 #' @param data_files result of `review_files()`
+#' @param background whether to run the app in a background process. Default to `getOption("autoimport_background", FALSE)`. Beware that this can bloat your stack call!
 #'
-#' @source shamelessly inspired by testthat::snapshot_review()
+#' @return nothing if `background==FALSE`, the ([callr::process]) object if `background==TRUE`
+#' @source inspired by testthat::snapshot_review()
 #' @export
+#' @importFrom callr r_bg
 #' @importFrom cli cli_inform
 #' @importFrom rlang check_installed
-import_review = function(data_files=review_files()) {
+import_review = function(data_files=review_files(),
+                         background=getOption("autoimport_background", FALSE)) {
   check_installed("shiny", "snapshot_review()")
   check_installed("diffviewer", "snapshot_review()")
 
@@ -20,56 +23,65 @@ import_review = function(data_files=review_files()) {
     cli_inform("No changes to review.")
     return(invisible(FALSE))
   }
-  review_app(data_files)
-  rstudio_tickle()
+
+  go = function(data_files){
+    print(data_files$old_files)
+    print(data_files$new_files)
+    print(data_files$changed)
+
+    print(file.exists(data_files$old_files))
+    print(file.exists(data_files$new_files))
+    review_app(data_files)
+    rstudio_tickle()
+  }
+
+  if(isTRUE(background)){
+    brw = Sys.getenv("R_BROWSER")
+    x=callr::r_bg(go, args=list(data_files=data_files),
+                  stdout="out", stderr="errors",
+                  package="autoimport", env = c(R_BROWSER=brw))
+    return(x)
+  }
+
+  go(data_files)
   invisible()
 }
 
-#'
+
 #' @rdname import_review
-#' @param path mostly used for tests
+#' @param path,output_path mostly used for tests
 #' @description NULL
 #' @export
 #' @importFrom checkmate assert_file_exists
 #' @importFrom digest digest
 #' @importFrom purrr map2_lgl
 #' @importFrom tibble tibble
-review_files = function(path="R/"){
-  files = dir(path, full.names=TRUE)
-  checkmate::assert_file_exists(files)
-  new_files = file.path(get_target_dir(), basename(files))
-  files = files[file.exists(new_files)]
+review_files = function(source_path="R/", output_path=get_target_dir()){
+  old_files = dir(source_path, full.names=TRUE)
+  checkmate::assert_file_exists(old_files)
+  new_files = file.path(output_path, basename(old_files))
+  old_files = old_files[file.exists(new_files)]
   new_files = new_files[file.exists(new_files)]
-  changed = map2_lgl(files, new_files, ~{
+  changed = map2_lgl(old_files, new_files, ~{
     !identical(digest(.x, file=TRUE), digest(.y, file=TRUE))
   })
-  tibble(files, new_files, changed)
+  tibble(old_files, new_files, changed)
 }
 
-
-#' @rdname import_review
-#' @export
-#' @importFrom callr r_bg
-import_review_bg = function(data_files=review_files()){
-  # brw = function(url) .Call("rs_browseURL", url, PACKAGE="(embedding)")
-  brw = Sys.getenv("R_BROWSER")
-  callr::r_bg(function() import_review(data_files),
-              package=TRUE,
-              env = c(R_BROWSER =brw))
-}
 
 
 # Shiny ---------------------------------------------------------------------------------------
 
 
 
+#' @importFrom checkmate assert_file_exists
 #' @importFrom cli cli_inform
 #' @importFrom diffviewer visual_diff visual_diff_output visual_diff_render
 #' @importFrom rlang set_names
 #' @importFrom shiny actionButton div fluidPage fluidRow observeEvent paneViewer reactive runApp selectInput shinyApp stopApp updateSelectInput
 #' @noRd
 review_app = function(data_files){
-  case_index = seq_along(data_files$files) %>% set_names(data_files$files)
+  case_index = seq_along(data_files$old_files) %>% set_names(data_files$old_files)
   handled = rep(FALSE, length(case_index))
 
   ui = shiny::fluidPage(
@@ -88,18 +100,18 @@ review_app = function(data_files){
   )
 
   server = function(input, output, session) {
-    old_path = data_files$files
+    old_path = data_files$old_files
     new_path = data_files$new_files
 
     i = shiny::reactive(as.numeric(input$cases))
     output$diff = diffviewer::visual_diff_render({
       file = old_path[i()]
       new_file = new_path[i()]
+      assert_file_exists(file)
+      assert_file_exists(new_file)
       diffviewer::visual_diff(file, new_file)
     })
 
-    # Handle buttons - after clicking update move input$cases to next case,
-    # and remove current case (for accept/reject). If no cases left, close app
     shiny::observeEvent(input$accept, {
       cli_inform(c(">"="Accepting modification of '{.file {old_path[[i()]]}}'"))
       file.rename(new_path[[i()]], old_path[[i()]])
@@ -128,7 +140,6 @@ review_app = function(data_files){
         shiny::stopApp()
         return()
       }
-      # Find next case;
       remaining = case_index[!handled]
       next_cases = which(remaining > i())
       x = if(length(next_cases)==0) 1 else next_cases[[1]]

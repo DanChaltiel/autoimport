@@ -3,27 +3,29 @@
 \name{import_review}
 \alias{import_review}
 \alias{review_files}
-\alias{import_review_bg}
 \title{Decision management}
 \source{
-shamelessly inspired by testthat::snapshot_review()
+inspired by testthat::snapshot_review()
 }
 \usage{
-import_review(data_files = review_files())
+import_review(
+  data_files = review_files(),
+  background = getOption("autoimport_background", FALSE)
+)
 
-review_files(path = "R/")
-
-import_review_bg(data_files = review_files())
+review_files(source_path = "R/", output_path = get_target_dir())
 }
 \arguments{
 \item{data_files}{result of \code{review_files()}}
 
-\item{path}{mostly used for tests}
+\item{background}{whether to run the app in a background process. Default to \code{getOption("autoimport_background", FALSE)}. Beware that this can bloat your stack call!}
+
+\item{path, output_path}{mostly used for tests}
+}
+\value{
+nothing if \code{background==FALSE}, the (\link[callr:reexports]{callr::process}) object if \code{background==TRUE}
 }
 \description{
-\itemize{
-\item \code{import_review()} opens a Shiny app that shows a visual diff of each modified file.
-\item \code{import_review_bg()} opens the Shiny app in a background job so that you can keep working. Disclaimer: this can bloat your stack call!
-\item \code{review_files()} is a helper you probably won't need
-}
+\code{import_review()} opens a Shiny app that shows a visual diff of each modified file. \cr
+\code{review_files()} is a helper you probably won't ever use directly.
 }
