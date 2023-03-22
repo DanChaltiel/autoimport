@@ -47,7 +47,7 @@ autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
 
   cli_h1("Finished")
 
-  data_files = review_files()
+  data_files = review_files(dirname(files))
   if(!any(data_files$changed)){
     cli_inform(c(v="No changes to review."))
     rtn = FALSE
