@@ -6,7 +6,15 @@
 #' `review_files()` is a helper you probably won't ever use directly.
 #'
 #' @param data_files result of `review_files()`
-#' @param background whether to run the app in a background process. Default to `getOption("autoimport_background", FALSE)`. Beware that this can bloat your stack call!
+#' @param background whether to run the app in a background process. Default to `getOption("autoimport_background", FALSE)`.
+#'
+#' @section Warning:
+#' Beware that using `background=TRUE` can bloat your system with multiple R session! \cr
+#' You should probably kill the process when you are done:
+#' ```r
+#' p=import_review(background=TRUE)
+#' p$kill()
+#' ```
 #'
 #' @return nothing if `background==FALSE`, the ([callr::process]) object if `background==TRUE`
 #' @source inspired by testthat::snapshot_review()
@@ -25,12 +33,6 @@ import_review = function(data_files=review_files(),
   }
 
   go = function(data_files){
-    print(data_files$old_files)
-    print(data_files$new_files)
-    print(data_files$changed)
-
-    print(file.exists(data_files$old_files))
-    print(file.exists(data_files$new_files))
     review_app(data_files)
     rstudio_tickle()
   }

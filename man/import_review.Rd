@@ -18,7 +18,7 @@ review_files(source_path = "R/", output_path = get_target_dir())
 \arguments{
 \item{data_files}{result of \code{review_files()}}
 
-\item{background}{whether to run the app in a background process. Default to \code{getOption("autoimport_background", FALSE)}. Beware that this can bloat your stack call!}
+\item{background}{whether to run the app in a background process. Default to \code{getOption("autoimport_background", FALSE)}.}
 
 \item{path, output_path}{mostly used for tests}
 }
@@ -29,3 +29,13 @@ nothing if \code{background==FALSE}, the (\link[callr:reexports]{callr::process}
 \code{import_review()} opens a Shiny app that shows a visual diff of each modified file. \cr
 \code{review_files()} is a helper you probably won't ever use directly.
 }
+\section{Warning}{
+
+Beware that using \code{background=TRUE} can bloat your system with multiple R session! \cr
+You should probably kill the process when you are done:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{p=import_review(background=TRUE)
+p$kill()
+}\if{html}{\out{</div>}}
+}
+
