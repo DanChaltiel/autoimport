@@ -75,17 +75,6 @@ get_srcref_lines = function(parsed){
 }
 
 
-#' @param lines result of [read_lines()]
-#' @param insert line to insert
-#' @param pos insert before this position
-#' @noRd
-insert_line = function(lines, insert, pos){
-  c(
-    lines[seq(1, pos-1)],
-    insert,
-    lines[seq(pos, length(lines))]
-  )
-}
 
 #' @importFrom stringr str_starts
 #' @noRd

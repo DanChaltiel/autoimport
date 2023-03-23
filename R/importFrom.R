@@ -1,12 +1,4 @@
 
-# library(devtools)
-#
-# debugonce(roxygen2:::parse_package)
-# debugonce(roxygen2:::tokenize_file)
-# devtools::document()
-#
-
-
 #' because base::parseNamespaceFile() is not very handy for my use.
 #' @importFrom cli cli_abort
 #' @importFrom dplyr filter
@@ -196,8 +188,7 @@ get_inserts = function(.x, user_choice, exclude){
 #' @noRd
 get_lines2 = function(src_ref, imports){
   fun_c = as.character(src_ref)
-  if(is.null(imports)) return(fun_c)
-
+  if(length(imports)==0) return(fun_c)
   insert = glue("#' @importFrom {imports}")
 
   if(is_reexport(fun_c)){
@@ -215,6 +206,22 @@ get_lines2 = function(src_ref, imports){
     pos = x[[1]]$first_line_fun
   }
   insert_line(fun_c, insert, pos=pos)
+}
+
+#' @param lines result of [read_lines()]
+#' @param insert line to insert
+#' @param pos insert before this position
+#' @noRd
+insert_line = function(lines, insert, pos){
+  if(length(lines)==1){
+    return(c(insert, lines))
+  }
+
+  c(
+    lines[seq(1, pos-1)],
+    insert,
+    lines[seq(pos, length(lines))]
+  )
 }
 
 #' @importFrom dplyr last
