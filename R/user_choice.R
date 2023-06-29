@@ -56,9 +56,7 @@ get_user_choice = function(import_list, ask, ns, importlist_path){
 
   ask_update_importlist(user_asked, importlist_path)
 
-  rtn = bind_rows(rtn, user_asked) %>%
-    deframe() %>%
-    as.list()
+  rtn = c(rtn, deframe(user_asked))
   rtn
 }
 
