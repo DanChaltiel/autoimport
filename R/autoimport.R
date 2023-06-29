@@ -19,15 +19,17 @@
 #' @importFrom dplyr desc
 #' @importFrom purrr map
 #' @importFrom rlang set_names
-autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
-                      pkg_name=get_package_name(),
-                      namespace_file="./NAMESPACE",
-                      description_file="./DESCRIPTION",
+autoimport = function(root=".",
+                      files=get_R_dir(root),
+                      pkg_name=get_package_name(root),
+                      namespace_file=file.path(root, "NAMESPACE"),
+                      description_file=file.path(root, "DESCRIPTION"),
                       use_cache=TRUE, ask=TRUE, ignore_package=TRUE,
                       verbose=2){
   target_dir = get_target_dir()
   cache_dir = get_target_dir("cache")
   ns = parse_namespace(namespace_file)
+  importlist_path = file.path(root, "inst/IMPORTLIST")
   deps = desc::desc(file=description_file)$get_deps()
 
   if(any(!file.exists(files))){
@@ -39,12 +41,18 @@ autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
 
   ai_read = autoimport_read(lines_list, verbose)
   ai_parse = autoimport_parse(ai_read$ref_list, cache_dir, use_cache, pkg_name,
-                              ns, deps, ask, verbose)
+                              ns, deps, ask, importlist_path, verbose)
   ai_write = autoimport_write(ai_parse$import_list, ai_read$ref_list, lines_list,
                               ai_parse$user_choice, ignore_package,
                               pkg_name, target_dir, verbose)
 
-
+  #TODO faire un warning si namespace not loaded?
+  #TODO load all namespaces from DESCRIPTTION?
+  # data_parse = ai_parse$import_list %>%
+  #   map(~list_rbind(.x, names_to="caller")) %>%
+  #   list_rbind(names_to="file")
+  # data_parse %>% filter(action!="nothin")
+  # browser()
   cli_h1("Finished")
 
   data_files = review_files(dirname(files))
@@ -52,8 +60,9 @@ autoimport = function(files=dir("R/", pattern="\\.[Rr]$|", full.names=TRUE),
     cli_inform(c(v="No changes to review."))
     rtn = FALSE
   } else {
+    # browser()
     cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
-                 i="{.run autoimport::import_review()}"))
+                 i='{.run autoimport::import_review("{dirname(files)[1]}")}'))
     rtn = TRUE
   }
 
@@ -95,7 +104,8 @@ autoimport_read = function(lines_list, verbose) {
 #' @importFrom rlang set_names
 #' @importFrom stringr str_replace
 #' @importFrom tibble lst
-autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns, deps, ask, verbose) {
+autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
+                            deps, ask, importlist_path, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
 
@@ -129,20 +139,16 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns, deps, 
 
       if(isTRUE(use_cache) && !is.null(cache) && dig==cache$dig){
         rtn = cache$cache
-        if(verbose>1){
-          s = rtn %>% map_dbl(nrow) %>% sum()
-          cli_inform(c("!"="Reading cache",
-                       "i"="Found {s} function{?s} to import in {length(rtn)} function{?s} or code chunk{?s}."))
-        }
+        verb = "Reading"
       } else {
         rtn = list_importFrom(ref, pkg_name=pkg_name, ns=ns, deps=deps, verbose=verbose>1) #long call
-        # if(verbose>1) cli_inform(c("!"="Updating cache"))
-        if(verbose>1){
-          s = rtn %>% map_dbl(nrow) %>% sum()
-          cli_inform(c("!"="Updating cache",
-                       "i"="Found {s} function{?s} to import in {length(rtn)} function{?s} or code chunk{?s}."))
-        }
+        verb = "Updating"
         saveRDS(list(dig=dig, cache=rtn), cache_path)
+      }
+      if(verbose>1){
+        s = rtn %>% map_dbl(nrow) %>% sum()
+        cli_inform(c("!"="{verb} cache",
+                     "i"="Found {s} function{?s} to import in {length(rtn)} function{?s} or code chunk{?s}."))
       }
 
       rtn
@@ -152,7 +158,7 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns, deps, 
 
   if(verbose>0) cli_inform(c(v="Found a total of {n_imports} potential function{?s} to import"))
 
-  user_choice = get_user_choice(import_list, ask=ask, ns=ns)
+  user_choice = get_user_choice(import_list, ask=ask, ns=ns, importlist_path=importlist_path)
 
   lst(import_list, user_choice)
 }

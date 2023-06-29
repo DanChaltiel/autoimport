@@ -4,12 +4,12 @@
 #' @importFrom purrr list_rbind map map2_chr
 #' @importFrom tibble deframe
 #' @noRd
-get_user_choice = function(import_list, ask, ns){
+get_user_choice = function(import_list, ask, ns, importlist_path){
   if(!is.data.frame(import_list[[1]])){
     import_list = import_list %>% map(list_rbind)
   }
 
-  pref_importlist = get_importlist()
+  pref_importlist = get_importlist(importlist_path)
   unsure_funs = import_list %>%
     list_rbind(names_to="parent_fun") %>%
     filter(action=="ask_user") %>%
@@ -24,7 +24,7 @@ get_user_choice = function(import_list, ask, ns){
     filter(!is.na(pref_pkg))
   if(nrow(defined_funs)>0){
     cli_inform(c(i="Automatically attributing {nrow(defined_funs)} functions imports
-                    from {.file inst/IMPORTLIST}"))
+                    from {.file {importlist_path}}"))
     rtn = defined_funs %>% select(fun, package=pref_pkg) %>%
       deframe() %>%
       as.list()
@@ -54,7 +54,7 @@ get_user_choice = function(import_list, ask, ns){
     ) %>%
     select(fun, package)
 
-  ask_update_importlist(user_asked)
+  ask_update_importlist(user_asked, importlist_path)
 
   rtn = bind_rows(rtn, user_asked) %>%
     deframe() %>%
@@ -90,20 +90,20 @@ user_input_1package = function(fun, pkg, ns, rtnVal=FALSE){
 
 #' @importFrom glue glue
 #' @importFrom utils menu
-ask_update_importlist = function(user_asked){
+ask_update_importlist = function(user_asked, path="inst/IMPORTLIST"){
   resp = getOption("autoimport_testing_ask_save_importlist")
   if(!is.null(resp)){
     stopifnot(resp==1 || resp==2)
     x = if(resp==1) "" else "not "
-    cli_inform(c(i="TESTING: {x}saving choices in `inst/IMPORTLIST`"))
+    cli_inform(c(i="TESTING: {x}saving choices in {.file {path}}"))
   } else {
-    title = glue("\n\nDo you want to save your choices about these {nrow(user_asked)} functions in `inst/IMPORTLIST`?")
+    title = glue("\n\nDo you want to save your choices about these {nrow(user_asked)} functions in `{path}`?")
     choices = c("Yes", "No")
     resp = menu(choices=choices, title=title)
   }
 
   if(resp==1){
-    update_importlist(user_asked)
+    update_importlist(user_asked, path)
   }
   invisible(NULL)
 }

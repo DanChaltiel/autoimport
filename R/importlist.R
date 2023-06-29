@@ -16,13 +16,13 @@ update_importlist = function(imports, path=NULL){
   if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
   # path = normalizePath(path, mustWork = FALSE)
   if(!file.exists(path)){
-    dir.create(dirname(path))
+    dir.create(dirname(path), showWarnings=FALSE)
     file.create(path)
   }
   old_imports = get_importlist(path) %>% deframe() %>% as.list()
   new_imports = imports %>% deframe() %>% as.list()
   if(length(new_imports)==0){
-    cli::cli_inform(c(i="No change needed to {.file inst/IMPORTLIST}"))
+    cli::cli_inform(c(i="No change needed to {.file {path}}"))
     return(FALSE)
   }
 
@@ -30,7 +30,7 @@ update_importlist = function(imports, path=NULL){
   file_content = file_content[order(names(file_content))]
   output = paste0(names(file_content), " = ", file_content)
   writeLines(output, path)
-  cli::cli_inform(c(i="{length(new_imports)} line{?s} added to {.file inst/IMPORTLIST}"))
+  cli::cli_inform(c(i="{length(new_imports)} line{?s} added to {.file {path}}"))
   TRUE
 }
 

@@ -2,10 +2,10 @@
 
 #' Decision management
 #'
-#' `import_review()` opens a Shiny app that shows a visual diff of each modified file. \cr
-#' `review_files()` is a helper you probably won't ever use directly.
+#' Opens a Shiny app that shows a visual diff of each modified file.
 #'
-#' @param data_files result of `review_files()`
+#' @param source_path path to the original R files
+#' @param output_path path to the updated R files
 #' @param background whether to run the app in a background process. Default to `getOption("autoimport_background", FALSE)`.
 #'
 #' @section Warning:
@@ -17,15 +17,17 @@
 #' ```
 #'
 #' @return nothing if `background==FALSE`, the ([callr::process]) object if `background==TRUE`
-#' @source inspired by testthat::snapshot_review()
+#' @source inspired by [testthat::snapshot_review()]
 #' @export
 #' @importFrom callr r_bg
 #' @importFrom cli cli_inform
 #' @importFrom rlang check_installed
-import_review = function(data_files=review_files(),
+import_review = function(source_path="R/",
+                         output_path=get_target_dir(),
                          background=getOption("autoimport_background", FALSE)) {
   check_installed("shiny", "snapshot_review()")
   check_installed("diffviewer", "snapshot_review()")
+  data_files=review_files(source_path, output_path)
 
   if(!any(data_files$changed)){
     cli_inform("No changes to review.")

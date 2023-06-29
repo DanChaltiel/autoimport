@@ -52,17 +52,29 @@ import_review()
 
 ## Limits
 
+If someone has an idea on how to overcome this, please reach out!
+
+### False negatives
+
 Autoimport is based on `utils::getSrcref()` and share the same limits. 
 
 Therefore it wont recognize as functions and try to remove imports of: 
 
 - operators (`@importFrom dplyr %>%`, `@importFrom rlang :=`, ...).
 
-- functions called by name (e.g. `my_fun` in `sapply(x, my_fun)`).
+- functions called by name (e.g. `my_fun` in `sapply(x, my_fun)`) or in used inside strings (e.g. `cli::qty()`).
 
-The best way to avoid this problem is to put these imports in your package-level documentation, as this file is ignored by default (`ignore_package=TRUE`).
+The best way to avoid this problem is to put these imports in your package-level documentation, as this file is ignored by default (thanks to `ignore_package=TRUE`). For that, `usethis::use_package_doc()` and `usethis::use_pipe()` are your friends!
 
-Remember that `usethis::use_package_doc()` and `usethis::use_pipe()` are your friends!
+Also, all functions should belong to a loaded namespace. If a function is incorrectly not imported, just run `pkg::any_function` in the console. This will print the function code and load the namespace in the process.
+
+### False positives
+
+Some functions rely on packages from the `Suggest` section of `DESCRIPTION`.
+
+Unfortunately, `autoimport` cannot understand this and will try to import those function in `NAMESPACE`, causing a check failure.
+
+**WIP:** In the future, an exclusion list will be added to remove specific function from reading or writing using `autoimport`.
 
 ## Algorithm
 
@@ -82,6 +94,6 @@ As I couldn't find any standardized guideline about the right order of `roxygen2
 
 -   in place of the first @importFrom tag if there is one
 
--   **TODO** just before examples if there are some
+-   **WIP:** just before examples if there are some
 
 -   just before the function call otherwise

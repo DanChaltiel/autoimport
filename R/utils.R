@@ -87,7 +87,6 @@ is_com = function(x) str_starts(x, "#+'")
 set_names_ref = function(refs, warn_guess=FALSE){
   ref_names = refs %>%
     map_chr(~{
-      # browser()
       src = as.character(.x, useSource=TRUE)
       src = src[!str_starts(src, "#")]
       src = src[nzchar(src)]
@@ -118,7 +117,7 @@ set_names_ref = function(refs, warn_guess=FALSE){
 #' @importFrom purrr map_lgl
 #' @importFrom rlang set_names
 #' @noRd
-get_anywhere = function(fun, prefer){
+get_anywhere = function(fun, prefer=".GlobalEnv"){
   # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
 
   pkgs = loadedNamespaces() %>% set_names() %>% map_lgl(~{
@@ -149,12 +148,16 @@ is_exported = function(fun, pkg, fail=FALSE){
 
 #' @importFrom devtools as.package
 #' @noRd
-get_package_name = function(pkg=NULL){
-  if(is.null(pkg)){
-    default = devtools::as.package(".")$package
-    pkg = getOption("autoimport_pkg", default)
-  }
-  pkg
+get_package_name = function(root="."){
+  default = devtools::as.package(root)$package
+  getOption("autoimport_pkg", default)
+}
+
+
+#' @noRd
+get_R_dir = function(root="."){
+  path = file.path(root, "R")
+  dir(path, pattern="\\.[Rr]$|", full.names=TRUE)
 }
 
 
