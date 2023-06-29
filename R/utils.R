@@ -91,8 +91,9 @@ set_names_ref = function(refs, warn_guess=FALSE){
       src = as.character(.x, useSource=TRUE)
       src = src[!str_starts(src, "#")]
       src = src[nzchar(src)]
-      fun = paste(src, collapse="\n")
-      fun_name = str_extract(fun, regex("`?(.*?)`? *(?:=|=) *function.*"), group=TRUE)
+      # fun = paste(src, collapse="\n")
+      # fun_name = str_extract(fun, regex("`?(.*?)`? *(?:=|<-) *function.*"), group=TRUE)
+      fun_name = str_extract(src[1], regex("`?(.*?)`? *(?:=|<-) *function.*"), group=TRUE)
       # if(is.na(fun_name)){
       #   if(warn_guess) {
       #     cli_warn(c("Could not guess function name in code:", i="{.code {src}}"))
