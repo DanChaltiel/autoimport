@@ -220,7 +220,7 @@ get_lines2 = function(src_ref, imports){
 #' @param pos insert before this position
 #' @noRd
 insert_line = function(lines, insert, pos){
-  if(length(lines)==1){
+  if(length(lines)==1 || pos==1){
     return(c(insert, lines))
   }
 
