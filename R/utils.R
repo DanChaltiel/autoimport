@@ -132,6 +132,15 @@ get_anywhere = function(fun, prefer=".GlobalEnv"){
   pkgs[exported]
 }
 
+#' @importFrom rlang ns_env
+#' @noRd
+register_namespace = function(name){
+  pkgpath = find.package(name, quiet=TRUE)
+  suppressPackageStartupMessages(eapply(ns_env(name), force, all.names=TRUE))
+  TRUE
+}
+
+
 #' @importFrom cli cli_abort
 #' @importFrom rlang is_installed
 #' @importFrom withr with_package

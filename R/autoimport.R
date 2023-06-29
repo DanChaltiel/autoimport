@@ -17,7 +17,7 @@
 #'
 #' @importFrom cli cli_abort cli_h1 cli_inform
 #' @importFrom dplyr desc
-#' @importFrom purrr map
+#' @importFrom purrr map walk
 #' @importFrom rlang set_names
 autoimport = function(root=".",
                       files=get_R_dir(root),
@@ -31,6 +31,13 @@ autoimport = function(root=".",
   ns = parse_namespace(namespace_file)
   importlist_path = file.path(root, "inst/IMPORTLIST")
   deps = desc::desc(file=description_file)$get_deps()
+
+  cli_h1("Init")
+  ns_loading = deps$package %>%
+    str_subset("^R$", negate=TRUE)
+  walk(ns_loading, register_namespace)
+  cli_inform(c(v="Registered namespaces of {length(ns_loading)} dependencies."))
+
 
   if(any(!file.exists(files))){
     cli_abort("Couldn't find file{?s} {.file {files[!file.exists(files)]}}")
@@ -111,7 +118,7 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
 
   files = names(ref_list) %>% set_names()
 
-  digest_list = map(files, digest, file=TRUE)
+  # digest_list = map(files, digest, file=TRUE)
 
   cache_list = files %>% map(~{
     filename = basename(.x) %>% str_replace("\\.R|r$", ".rds")
@@ -125,13 +132,16 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
   #     dig = digest::digest(.y, file=TRUE)
   #     identical(dig, .x$dig)
   #   })
+  #TODO mettre le cache dans un seul fichier .rds à lire en une seule fois.
+  #     (mais du coup changer `cache_dir` en `cache_file`)
   #TODO on pourrait même faire un cache au niveau du digest de la ref elle-même!
 
   import_list = files %>%
     map(~{
       ref = ref_list[[.x]]
       cache = cache_list[[.x]]
-      dig = digest_list[[.x]]
+      # dig = digest_list[[.x]]
+      dig = digest(.x, file=TRUE)
       if(verbose>1) cli_inform(c(">"="File {.file {.x}}"))
 
       filename = basename(.x) %>% str_replace("\\.R|r$", ".rds")
@@ -155,7 +165,6 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
     })
 
   n_imports = import_list %>% map_depth(2, nrow) %>% unlist() %>% sum()
-
   if(verbose>0) cli_inform(c(v="Found a total of {n_imports} potential function{?s} to import"))
 
   user_choice = get_user_choice(import_list, ask=ask, ns=ns, importlist_path=importlist_path)
