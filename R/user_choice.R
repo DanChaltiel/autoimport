@@ -1,6 +1,6 @@
 
 #' @importFrom cli cli_h1 cli_inform
-#' @importFrom dplyr bind_rows distinct filter left_join mutate select
+#' @importFrom dplyr distinct filter left_join mutate select
 #' @importFrom purrr list_rbind map map2_chr
 #' @importFrom tibble deframe
 #' @noRd
@@ -86,6 +86,7 @@ user_input_1package = function(fun, pkg, ns, rtnVal=FALSE){
 }
 
 
+#' @importFrom cli cli_inform
 #' @importFrom glue glue
 #' @importFrom utils menu
 ask_update_importlist = function(user_asked, path="inst/IMPORTLIST"){

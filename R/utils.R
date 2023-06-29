@@ -23,6 +23,7 @@ write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
 
 #' roxygen2:::comments
 #' @noRd
+#' @importFrom purrr map
 comments = function (refs) {
   stopifnot(length(map(refs, ~attr(.x, "srcfile")) %>% unique())==1)
   srcfile = attr(refs[[1]], "srcfile")

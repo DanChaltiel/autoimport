@@ -5,10 +5,11 @@
 \title{Automatically add \verb{@importFrom} tags}
 \usage{
 autoimport(
-  files = dir("R/", pattern = "\\\\.[Rr]$|", full.names = TRUE),
-  pkg_name = get_package_name(),
-  namespace_file = "./NAMESPACE",
-  description_file = "./DESCRIPTION",
+  root = ".",
+  files = get_R_dir(root),
+  pkg_name = get_package_name(root),
+  namespace_file = file.path(root, "NAMESPACE"),
+  description_file = file.path(root, "DESCRIPTION"),
   use_cache = TRUE,
   ask = TRUE,
   ignore_package = TRUE,

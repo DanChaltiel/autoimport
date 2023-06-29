@@ -1,10 +1,9 @@
 
 #' because base::parseNamespaceFile() is not very handy for my use.
 #' @importFrom cli cli_abort
-#' @importFrom dplyr filter
-#' @importFrom readr read_lines
-#' @importFrom tibble as_tibble
-#' @importFrom tidyr separate_wider_delim separate_wider_regex
+#' @importFrom dplyr arrange filter rename select
+#' @importFrom purrr map_chr
+#' @importFrom tibble tibble
 #' @noRd
 parse_namespace = function(file){
   test_file = getOption("test_file")
@@ -172,7 +171,6 @@ list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
 
 #' @importFrom dplyr cur_group filter group_by if_else mutate pull summarise
 #' @importFrom purrr modify_if
-#' @importFrom tibble deframe
 #' @noRd
 get_inserts = function(.x, user_choice, exclude){
   if(is.null(.x)) return(NULL)

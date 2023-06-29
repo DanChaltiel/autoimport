@@ -5,18 +5,21 @@
 \alias{review_files}
 \title{Decision management}
 \source{
-inspired by testthat::snapshot_review()
+inspired by \code{\link[testthat:snapshot_accept]{testthat::snapshot_review()}}
 }
 \usage{
 import_review(
-  data_files = review_files(),
+  source_path = "R/",
+  output_path = get_target_dir(),
   background = getOption("autoimport_background", FALSE)
 )
 
 review_files(source_path = "R/", output_path = get_target_dir())
 }
 \arguments{
-\item{data_files}{result of \code{review_files()}}
+\item{source_path}{path to the original R files}
+
+\item{output_path}{path to the updated R files}
 
 \item{background}{whether to run the app in a background process. Default to \code{getOption("autoimport_background", FALSE)}.}
 
@@ -26,8 +29,7 @@ review_files(source_path = "R/", output_path = get_target_dir())
 nothing if \code{background==FALSE}, the (\link[callr:reexports]{callr::process}) object if \code{background==TRUE}
 }
 \description{
-\code{import_review()} opens a Shiny app that shows a visual diff of each modified file. \cr
-\code{review_files()} is a helper you probably won't ever use directly.
+Opens a Shiny app that shows a visual diff of each modified file.
 }
 \section{Warning}{
 

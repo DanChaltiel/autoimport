@@ -19,6 +19,7 @@
 #' @importFrom dplyr desc
 #' @importFrom purrr map walk
 #' @importFrom rlang set_names
+#' @importFrom stringr str_subset
 autoimport = function(root=".",
                       files=get_R_dir(root),
                       pkg_name=get_package_name(root),
@@ -107,7 +108,8 @@ autoimport_read = function(lines_list, verbose) {
 
 
 #' @importFrom cli cli_h1 cli_inform
-#' @importFrom purrr map map_dbl map_depth pmap
+#' @importFrom digest digest
+#' @importFrom purrr map map_dbl map_depth
 #' @importFrom rlang set_names
 #' @importFrom stringr str_replace
 #' @importFrom tibble lst
