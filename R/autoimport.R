@@ -18,7 +18,7 @@
 #' @importFrom cli cli_abort cli_h1 cli_inform
 #' @importFrom dplyr desc
 #' @importFrom purrr map walk
-#' @importFrom rlang set_names
+#' @importFrom rlang check_installed set_names
 #' @importFrom stringr str_subset
 autoimport = function(root=".",
                       files=get_R_dir(root),
@@ -36,6 +36,7 @@ autoimport = function(root=".",
   cli_h1("Init")
   ns_loading = deps$package %>%
     str_subset("^R$", negate=TRUE)
+  check_installed(ns_loading)
   walk(ns_loading, register_namespace)
   cli_inform(c(v="Registered namespaces of {length(ns_loading)} dependencies."))
 
