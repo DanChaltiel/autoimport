@@ -1,9 +1,10 @@
 
 #' because base::parseNamespaceFile() is not very handy for my use.
 #' @importFrom cli cli_abort
-#' @importFrom dplyr arrange filter rename select
-#' @importFrom purrr map_chr
+#' @importFrom dplyr arrange filter mutate rename select
+#' @importFrom purrr map map_chr
 #' @importFrom tibble tibble
+#' @importFrom tidyr complete
 #' @noRd
 parse_namespace = function(file){
   test_file = getOption("test_file")
@@ -14,7 +15,10 @@ parse_namespace = function(file){
   rtn = tibble(operator = map_chr(directives, ~as.character(.x[1])),
                value = map_chr(directives, ~as.character(.x[2])),
                details = map_chr(directives, ~as.character(.x[3]))) %>%
-    split(.$operator)
+    mutate(operator=factor(operator, levels=c("export", "import", "importFrom"))) %>%
+    complete(operator) %>%
+    split(.$operator) %>%
+    map(~.x %>% filter(!is.na(value)))
 
   rtn$export = rtn$export %>% select(-details)
   rtn$import = rtn$import %>% rename(except=details)
