@@ -18,6 +18,7 @@
 #' @importFrom cli cli_abort cli_h1 cli_inform
 #' @importFrom dplyr desc
 #' @importFrom purrr map walk
+#' @importFrom readr read_lines
 #' @importFrom rlang check_installed set_names
 #' @importFrom stringr str_subset
 autoimport = function(root=".",
