@@ -38,13 +38,14 @@ update_importlist = function(imports, path=NULL){
 #' @rdname update_importlist
 #' @importFrom checkmate assert
 #' @importFrom purrr map map_chr
-#' @importFrom stringr str_split_1 str_squish
+#' @importFrom stringr str_split_1 str_squish str_starts
 #' @importFrom tibble tibble
 get_importlist = function(path=NULL){
   if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
   if(!file.exists(path)) return(tibble(fun=NA, pref_pkg=NA))
 
   lines = readLines(path, warn=FALSE, encoding="UTF-8") %>%
+    subset(.!="" & !str_starts(., "#")) %>%
     map(~str_split_1(.x, "=")) %>%
     map(~str_squish(.x))
   checkmate::assert(all(lengths(lines)==2))
