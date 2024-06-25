@@ -11,6 +11,7 @@ test_that("autoimport", {
 
   withr::local_options(autoimport_target_dir = dir_output)
   withr::local_options(autoimport_importlist=importlist_file)
+  withr::local_options(rlang_backtrace_on_error="full")
   withr::local_options(autoimport_testing_ask_save_importlist=1) #Yes
   # withr::local_options(autoimport_testing_ask_save_importlist=2) #No
 
