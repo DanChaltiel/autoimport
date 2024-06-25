@@ -137,8 +137,7 @@ get_anywhere = function(fun, prefer=".GlobalEnv"){
 #' @importFrom rlang ns_env
 #' @noRd
 register_namespace = function(name){
-  pkgpath = find.package(name, quiet=TRUE)
-  suppressPackageStartupMessages(eapply(ns_env(name), force, all.names=TRUE))
+  suppressPackageStartupMessages(loadNamespace(name))
   TRUE
 }
 
