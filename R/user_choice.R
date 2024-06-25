@@ -35,7 +35,7 @@ get_user_choice = function(import_list, ask, ns, importlist_path){
   if(nrow(undefined_funs)==0) return(rtn)
 
   if(ask){
-    selected = user_input_packages(undefined_funs)
+    selected = user_input_pkg_choose(undefined_funs)
   } else {
     cli_inform(c(i="Automatically attributing {nrow(undefined_funs)} functions imports,
                     as {.arg ask==FALSE}"))
@@ -44,14 +44,8 @@ get_user_choice = function(import_list, ask, ns, importlist_path){
   if(selected==0 || selected==3) stop("abort mission")
 
   user_asked = undefined_funs %>%
-    mutate(
-      package = map2_chr(fun, pkg, ~{
-        i = 1
-        if(selected==1) i = user_input_1package(.x, .y, ns)
-        if(i==0) return(NA)
-        .y[i]
-      })
-    ) %>%
+    mutate(package = map2_chr(fun, pkg,
+                              ~user_input_1package(.x, .y, ns, select_first=selected==2))) %>%
     select(fun, package)
 
   ask_update_importlist(user_asked, importlist_path)
@@ -63,7 +57,7 @@ get_user_choice = function(import_list, ask, ns, importlist_path){
 #' @importFrom glue glue
 #' @importFrom utils menu
 #' @noRd
-user_input_packages = function(unsure_funs){
+user_input_pkg_choose = function(unsure_funs){
   title = glue("\n\nThere are {nrow(unsure_funs)} functions that can be imported from several packages. What do you want to do?")
   choices = c("Choose the package for each", "Choose for me please", "Abort mission")
   menu(choices=choices, title=title)
@@ -74,15 +68,18 @@ user_input_packages = function(unsure_funs){
 #' @importFrom stringr str_pad
 #' @importFrom utils menu
 #' @noRd
-user_input_1package = function(fun, pkg, ns, rtnVal=FALSE){
+user_input_1package = function(fun, pkg, ns, select_first){
   ni = map_int(pkg, ~sum(ns$importFrom$from==.x))
+  pkg = pkg[order(ni, decreasing=TRUE)]
+  ni = ni[order(ni, decreasing=TRUE)]
+  if(select_first) return(pkg[1])
   label = glue(" ({n} function{s} imported)", n=str_pad(ni, max(nchar(ni))), s = ifelse(ni>1, "s", ""))
   label[pkg=="base"] = ""
   title = glue("`{fun}()` can be found in several packages.\n From which one do you want to import it:")
   choices = glue("{pkg}{label}")
-  i=menu(choices=choices, title=title)
-  if(rtnVal) return(choices[i])
-  i
+  i = menu(choices=choices, title=title)
+  if(i==0) return(NA)
+  pkg[i]
 }
 
 
