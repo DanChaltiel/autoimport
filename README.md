@@ -26,10 +26,9 @@ Therefore, `autoimport` will parse your code, detect all the functions you impor
 
 ## Installation
 
-``` r
-# Install last version available on CRAN (once published)
-install.packages("autoimport")
+For now, only the development version is available:
 
+``` r
 # Install development version on Github
 devtools::install_github("DanChaltiel/autoimport")
 ```
@@ -39,20 +38,20 @@ devtools::install_github("DanChaltiel/autoimport")
 Simply run the function!
 
 ```{r}
-autoimport()
+autoimport::autoimport()
 ```
 
 The first run will take some time, but a cache system is implemented so that next runs are faster.
 
-Then, you can see the diff using a shiny app:
+Then, you can see the diff and accept the changes using a shiny widget:
 
 ```{r}
-import_review()
+autoimport::import_review()
 ```
 
-## Limits
+## Known limits
 
-If someone has an idea on how to overcome this, please reach out!
+*Call for help*:If someone has an idea on how to overcome some of these, please reach out!
 
 ### False negatives
 
@@ -62,11 +61,9 @@ Therefore it wont recognize as functions and try to remove imports of:
 
 - operators (`@importFrom dplyr %>%`, `@importFrom rlang :=`, ...).
 
-- functions called by name (e.g. `my_fun` in `sapply(x, my_fun)`) or in used inside strings (e.g. `cli::qty()`).
+- functions called by name (e.g. `my_fun` in `sapply(x, my_fun)`) or used inside strings (e.g. `glue("my_fun={my_fun(x)}")`).
 
-The best way to avoid this problem is to put these imports in your package-level documentation, as this file is ignored by default (thanks to `ignore_package=TRUE`). For that, `usethis::use_package_doc()` and `usethis::use_pipe()` are your friends!
-
-Also, all functions should belong to a loaded namespace. If a function is incorrectly not imported, just run `pkg::any_function` in the console. This will print the function code and load the namespace in the process.
+The best way to avoid this problem is to put these imports in your package-level documentation, as this file is ignored by default (due to `ignore_package=TRUE`). For that, `usethis::use_package_doc()` and `usethis::use_pipe()` are your friends!
 
 ### False positives
 
@@ -75,6 +72,28 @@ Some functions rely on packages from the `Suggest` section of `DESCRIPTION`.
 Unfortunately, `autoimport` cannot understand this and will try to import those function in `NAMESPACE`, causing a check failure.
 
 **WIP:** In the future, an exclusion list will be added to remove specific function from reading or writing using `autoimport`.
+
+### Prefixes
+
+If you need the same function from 2 different packages (e.g. `dplyr::desc()` and `desc::desc()` in my case), it migght cause troubles sometimes...
+
+
+### Reexports
+
+Reexports are really annoying because they can be exported by a package while belonging to another namespace.
+
+For instance, `div` is reexported by `shiny` from `htmltools`, so autoimport will try to import it from there:
+
+```diff
++  #' @importFrom htmltools div            
+   #' @importFrom rlang set_names            
+-  #' @importFrom shiny actionButton div fluidPage fluidRow observeEvent
++  #' @importFrom shiny actionButton fluidPage fluidRow observeEvent
+```
+
+Accepting this will cause an unneeded dependency over `htmltools`.
+
+**WIP:** This might be manually enforced in IMPORTLIST.
 
 ## Algorithm
 
