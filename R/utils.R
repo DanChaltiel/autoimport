@@ -137,7 +137,7 @@ get_anywhere = function(fun, prefer=".GlobalEnv"){
 #' @importFrom rlang ns_env
 #' @noRd
 register_namespace = function(name){
-  suppressPackageStartupMessages(loadNamespace(name))
+  suppressPackageStartupMessages(suppressWarnings(loadNamespace(name)))
   TRUE
 }
 
@@ -151,7 +151,9 @@ is_exported = function(fun, pkg, fail=FALSE){
     if(fail) cli_abort("{.pkg {pkg}} is not installed")
     return(FALSE)
   }
-  l = withr::with_package(pkg, try(ls(paste0("package:",pkg)), silent=TRUE))
+
+
+  l = suppressWarnings(withr::with_package(pkg, try(ls(paste0("package:",pkg)), silent=TRUE), quietly=TRUE))
   if(inherits(l, "try-error")) return(FALSE)
   fun %in% l
 }
