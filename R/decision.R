@@ -56,7 +56,6 @@ import_review = function(source_path="R/",
 #' @param path,output_path mostly used for tests
 #' @description NULL
 #' @export
-#' @importFrom checkmate assert_file_exists
 #' @importFrom digest digest
 #' @importFrom purrr map2_lgl
 #' @importFrom tibble tibble
