@@ -6,6 +6,7 @@
 
 # autoimport 0.1.0
 
+- package-prefixed function calls are now ignored by default. Set `options(ignore_prefixed=FALSE)` to import them back.
 - implement comments in inst/IMPORTLIST
 
 # autoimport 0.0.1

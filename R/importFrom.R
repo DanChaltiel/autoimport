@@ -53,7 +53,14 @@ parse_ref = function(ref, pkg_name, ns, deps){
   pd = getParseData(parse(text=.fun))
   # pd = getParseData(parse(text=str_replace_all(.fun, "~", "")))
   non_comment = pd %>% filter(token!="COMMENT") %>% pull(text) %>% paste(collapse="")
-  nms = pd$text[pd$token == "SYMBOL_FUNCTION_CALL"]
+  nms = pd$text[pd$token == "SYMBOL_FUNCTION_CALL"] %>% unique()
+
+  if(getOption("ignore_prefixed", TRUE)){
+    nms_prefixed = pd$token == "SYMBOL_FUNCTION_CALL" & lag(pd$token,n=2)=="SYMBOL_PACKAGE"
+    nms_prefixed = pd$text[nms_prefixed]
+    nms = setdiff(nms, nms_prefixed)
+  }
+
   if(length(nms)==0) return(NULL)
 
   imported_from = function(fun, ns){
@@ -151,6 +158,8 @@ parse_function = function(ref, pkg_name, ns, deps){
     list_rbind() %>%
     mutate(pkg_str = map_chr(pkg, paste, collapse="/"), .after=pkg) %>%
     arrange(action)
+
+  rslt
 }
 
 #' @importFrom cli cli_inform
