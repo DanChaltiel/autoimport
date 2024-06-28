@@ -49,7 +49,10 @@ parse_namespace = function(file){
 #' @importFrom utils getParseData
 #' @noRd
 parse_ref = function(ref, pkg_name, ns, deps){
-  .fun = paste(as.character(ref, useSource=TRUE), collapse="\n")
+  ref_chr = as.character(ref, useSource=TRUE) %>%
+    str_subset("#.*autoimport_ignore", negate=TRUE)
+
+  .fun = paste(ref_chr, collapse="\n")
   pd = getParseData(parse(text=.fun))
   # pd = getParseData(parse(text=str_replace_all(.fun, "~", "")))
   non_comment = pd %>% filter(token!="COMMENT") %>% pull(text) %>% paste(collapse="")
