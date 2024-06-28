@@ -20,15 +20,12 @@ assert = function(x, msg=NULL){
 #' @noRd
 #' @keywords internal
 #' @examples
-#' assert_file_exists("R/assertions.R")
-#' assert_file_exists("R/assertions.SAS")
+#' assert_file_exists(c("R/assertions.R", "R/autoimport.R"))
+#' assert_file_exists(c("R/assertions.SAS", "R/autoimport.SAS", "R/autoimport.R"))
 assert_file_exists = function(x, msg=NULL){
-  if(is.null(msg)){
-    x_str = caller_arg(x)
-    msg = glue("{x_str} doesn't exist.")
-  }
-  if(!file.exists(x)){
-    cli_abort(msg)
+  not_found = x[!file.exists(x)]
+  if(length(not_found)>0){
+    cli_abort("File{?s} do{?es/} not exist: {.file {not_found}}")
   }
   invisible(TRUE)
 }
