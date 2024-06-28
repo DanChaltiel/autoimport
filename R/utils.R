@@ -153,7 +153,7 @@ is_exported = function(fun, pkg, fail=FALSE){
   }
 
 
-  l = suppressWarnings(withr::with_package(pkg, try(ls(paste0("package:",pkg)), silent=TRUE), quietly=TRUE))
+  l = suppressWarnings(with_package(pkg, try(ls(paste0("package:",pkg)), silent=TRUE), quietly=TRUE))
   if(inherits(l, "try-error")) return(FALSE)
   fun %in% l
 }

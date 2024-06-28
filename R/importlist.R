@@ -22,7 +22,7 @@ update_importlist = function(imports, path=NULL){
   old_imports = get_importlist(path) %>% deframe() %>% as.list()
   new_imports = imports %>% deframe() %>% as.list()
   if(length(new_imports)==0){
-    cli::cli_inform(c(i="No change needed to {.file {path}}"))
+    cli_inform(c(i="No change needed to {.file {path}}"))
     return(FALSE)
   }
 
@@ -30,7 +30,7 @@ update_importlist = function(imports, path=NULL){
   file_content = file_content[order(names(file_content))]
   output = paste0(names(file_content), " = ", file_content)
   writeLines(output, path)
-  cli::cli_inform(c(i="{length(new_imports)} line{?s} added to {.file {path}}"))
+  cli_inform(c(i="{length(new_imports)} line{?s} added to {.file {path}}"))
   TRUE
 }
 
@@ -48,7 +48,7 @@ get_importlist = function(path=NULL){
     subset(.!="" & !str_starts(., "#")) %>%
     map(~str_split_1(.x, "=")) %>%
     map(~str_squish(.x))
-  checkmate::assert(all(lengths(lines)==2))
+  assert(all(lengths(lines)==2))
 
   #TODO check that file is correct and warn for xxx=unkwown_package
   tibble(fun=map_chr(lines, 1), pref_pkg=map_chr(lines, 2))

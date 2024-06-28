@@ -19,7 +19,6 @@
 #' @return nothing if `background==FALSE`, the ([callr::process]) object if `background==TRUE`
 #' @source inspired by [testthat::snapshot_review()]
 #' @export
-#' @importFrom callr r_bg
 #' @importFrom cli cli_inform
 #' @importFrom rlang check_installed
 import_review = function(source_path="R/",
@@ -40,6 +39,7 @@ import_review = function(source_path="R/",
   }
 
   if(isTRUE(background)){
+    check_installed("callr", "for `import_review()` to work in background")
     brw = Sys.getenv("R_BROWSER")
     x=callr::r_bg(go, args=list(data_files=data_files),
                   stdout="out", stderr="errors",
@@ -62,7 +62,7 @@ import_review = function(source_path="R/",
 #' @importFrom tibble tibble
 review_files = function(source_path="R/", output_path=get_target_dir()){
   old_files = dir(source_path, full.names=TRUE)
-  checkmate::assert_file_exists(old_files)
+  assert_file_exists(old_files)
   new_files = file.path(output_path, basename(old_files))
   old_files = old_files[file.exists(new_files)]
   new_files = new_files[file.exists(new_files)]
@@ -80,9 +80,7 @@ review_files = function(source_path="R/", output_path=get_target_dir()){
 
 #' @importFrom checkmate assert_file_exists
 #' @importFrom cli cli_inform
-#' @importFrom diffviewer visual_diff visual_diff_output visual_diff_render
 #' @importFrom rlang set_names
-#' @importFrom shiny actionButton div fluidPage fluidRow observeEvent paneViewer reactive runApp selectInput shinyApp stopApp updateSelectInput
 #' @noRd
 review_app = function(data_files){
   case_index = seq_along(data_files$old_files) %>% set_names(data_files$old_files)
@@ -168,7 +166,6 @@ review_app = function(data_files){
 
 # testthat:::rstudio_tickle
 #' @importFrom rlang is_installed
-#' @importFrom rstudioapi executeCommand hasFun
 #' @noRd
 rstudio_tickle = function(){
   if (!is_installed("rstudioapi")) {

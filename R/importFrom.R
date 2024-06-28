@@ -42,8 +42,9 @@ parse_namespace = function(file){
 #' @param ref a ref
 #' @param pkg_name package name (character)
 #' @param ns result of `parse_namespace()`
-#' @importFrom dplyr arrange desc distinct filter mutate pull
+#' @importFrom dplyr arrange desc distinct filter lag mutate pull
 #' @importFrom purrr map map_chr map_int map2_lgl
+#' @importFrom stringr str_subset
 #' @importFrom tibble as_tibble_col
 #' @importFrom tidyr unchop
 #' @importFrom utils getParseData

@@ -1,6 +1,16 @@
 attr = base
-match = base
+desc = dplyr
+div = shiny
+filter = dplyr
+lag = dplyr
+map = purrr
+ns_env = rlang
 order = base
+print = base
 readLines = base
+regex = stringr
+set_names = rlang
 setdiff = base
+unname = base
+which = base
 writeLines = base
