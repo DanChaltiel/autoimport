@@ -24,8 +24,8 @@
 import_review = function(source_path="R/",
                          output_path=get_target_dir(),
                          background=getOption("autoimport_background", FALSE)) {
-  check_installed("shiny", "snapshot_review()")
-  check_installed("diffviewer", "snapshot_review()")
+  check_installed("shiny", "for `import_review()` to work")
+  check_installed("diffviewer", "for `import_review()` to work")
   data_files=review_files(source_path, output_path)
 
   if(!any(data_files$changed)){
