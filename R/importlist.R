@@ -36,7 +36,6 @@ update_importlist = function(imports, path=NULL){
 
 
 #' @rdname update_importlist
-#' @importFrom checkmate assert
 #' @importFrom purrr map map_chr
 #' @importFrom stringr str_split_1 str_squish str_starts
 #' @importFrom tibble tibble
