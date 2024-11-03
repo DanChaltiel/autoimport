@@ -17,7 +17,6 @@
 #'
 #' @importFrom cli cli_abort cli_h1 cli_inform
 #' @importFrom purrr map walk
-#' @importFrom readr read_lines
 #' @importFrom rlang check_installed set_names
 #' @importFrom stringr str_subset
 autoimport = function(root=".",
@@ -46,7 +45,7 @@ autoimport = function(root=".",
   }
 
   files = set_names(files)
-  lines_list = map(files, read_lines)
+  lines_list = map(files, readr::read_lines)
 
   ai_read = autoimport_read(lines_list, verbose)
   ai_parse = autoimport_parse(ai_read$ref_list, cache_dir, use_cache, pkg_name,

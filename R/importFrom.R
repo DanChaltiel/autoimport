@@ -50,8 +50,9 @@ parse_namespace = function(file){
 #' @importFrom utils getParseData
 #' @noRd
 parse_ref = function(ref, pkg_name, ns, deps){
+  ignore = "#.*autoimport_ignore"
   ref_chr = as.character(ref, useSource=TRUE) %>%
-    str_subset("#.*autoimport_ignore", negate=TRUE)
+    str_subset(ignore, negate=TRUE)
 
   .fun = paste(ref_chr, collapse="\n")
   pd = getParseData(parse(text=.fun))
