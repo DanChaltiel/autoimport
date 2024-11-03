@@ -48,6 +48,7 @@ autoimport = function(root=".",
   lines_list = map(files, readr::read_lines)
 
   ai_read = autoimport_read(lines_list, verbose)
+
   ai_parse = autoimport_parse(ai_read$ref_list, cache_dir, use_cache, pkg_name,
                               ns, deps, ask, importlist_path, verbose)
   ai_write = autoimport_write(ai_parse$import_list, ai_read$ref_list, lines_list,
@@ -93,12 +94,14 @@ autoimport_read = function(lines_list, verbose) {
     imap(function(lines, file){
       parsed = parse(text=lines, keep.source=TRUE)
       comments_refs = getSrcref(parsed) %>% comments() %>% set_names_ref()
-      if(verbose>1) cli_inform(c(i="Found {length(comments_refs)} function{?s} in file {.file {file}} ({length(lines)} lines)"))
+      if(verbose>1) cli_inform(c(i="Found {length(comments_refs)} function{?s} in
+                                 file {.file {file}} ({length(lines)} lines)"))
       comments_refs
     })
   tot_lines = sum(lengths(lines_list))
   tot_refs = sum(lengths(ref_list))
-  if(verbose>0) cli_inform(c(v="Found a total of {tot_refs} internal functions in {length(lines_list)} files ({tot_lines} lines)."))
+  if(verbose>0) cli_inform(c(v="Found a total of {tot_refs} internal functions
+                             in {length(lines_list)} files ({tot_lines} lines)."))
 
   check_duplicated(ref_list, verbose)
   lst(ref_list)
@@ -205,8 +208,11 @@ autoimport_write = function(import_list, ref_list, lines_list, user_choice, igno
       inserts = imp_list %>% map(~get_inserts(.x, user_choice, exclude=c("base", pkg_name)))
       cli_inform(c(i="{length(unlist(inserts))} inserts in {.file {file}}"))
 
+      lines2 = comments_refs %>%
+        imap(~get_lines2(.x, inserts[[.y]])) %>%
+        unname() %>% unlist() %>%
+        add_trailing_comment_lines(lines)
 
-      lines2 = comments_refs %>% imap(~get_lines2(.x, inserts[[.y]])) %>% unname() %>% unlist()
       if(identical(lines, lines2)){
         if(verbose>0) cli_inform(c(">"="Nothing done in {.file {file}} (all is already OK)"))
         return(NULL)
@@ -228,7 +234,23 @@ autoimport_write = function(import_list, ref_list, lines_list, user_choice, igno
   diffs
 }
 
+#' If the file ends with comments, these would be ignored by the parser
+#' This functions adds them manually
+#' @importFrom stringr str_detect
+add_trailing_comment_lines = function(lines2, lines){
+  if(identical(lines, lines2)) return(lines2)
 
+  m = max(which(lines %in% lines2))
+  if(m==length(lines)) return(lines2)
+
+  trailing_lines = lines[m:length(lines)]
+  are_comments_or_spaces = str_detect(trailing_lines, "^\\s*$|^\\s*#.*$")
+  if(all(are_comments_or_spaces)){
+    lines2 = c(lines2, trailing_lines)
+  }
+
+  lines2
+}
 
 
 #' @importFrom cli cli_h2 cli_warn

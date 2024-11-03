@@ -211,3 +211,11 @@ get_target_dir = function(path=NULL){
   dir.create(d, recursive=TRUE, showWarnings=FALSE)
   d
 }
+
+#' @noRd
+#' @keywords internal
+clean_cache = function(){
+  cache_dir = get_target_dir("cache")
+  unlink(cache_dir, recursive=TRUE)
+  invisible(TRUE)
+}
