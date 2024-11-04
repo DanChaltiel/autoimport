@@ -7,7 +7,7 @@ utils::globalVariables(c(".", "x", "y", "fun", "pkg", "value", "values", "ind",
 #' @name autoimport-package
 #' @aliases autoimport-package
 ## usethis namespace: start
-#' @importFrom lifecycle deprecated
 #' @importFrom dplyr %>%
+#' @importFrom lifecycle deprecated
 ## usethis namespace: end
 "_PACKAGE"

@@ -55,6 +55,7 @@ autoimport = function(root=".",
                               ai_parse$user_choice, ignore_package,
                               pkg_name, target_dir, verbose)
 
+  #TODO faire un warning si une fonction n'est trouvée nulle part ?
   #TODO faire un warning si namespace not loaded?
   #TODO load all namespaces from DESCRIPTTION?
   # data_parse = ai_parse$import_list %>%
@@ -69,7 +70,6 @@ autoimport = function(root=".",
     cli_inform(c(v="No changes to review."))
     rtn = FALSE
   } else {
-    # browser()
     cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
                  i='{.run autoimport::import_review("{dirname(files)[1]}")}'))
     rtn = TRUE
@@ -237,6 +237,8 @@ autoimport_write = function(import_list, ref_list, lines_list, user_choice, igno
 #' If the file ends with comments, these would be ignored by the parser
 #' This functions adds them manually
 #' @importFrom stringr str_detect
+#' @noRd
+#' @keywords internal
 add_trailing_comment_lines = function(lines2, lines){
   if(identical(lines, lines2)) return(lines2)
 
