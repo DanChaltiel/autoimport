@@ -25,6 +25,7 @@ write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
 #' @noRd
 #' @importFrom purrr map
 comments = function (refs) {
+  if(length(refs)==0) return(list())
   stopifnot(length(map(refs, ~attr(.x, "srcfile")) %>% unique())==1)
   srcfile = attr(refs[[1]], "srcfile")
 

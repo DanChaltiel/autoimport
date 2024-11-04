@@ -57,7 +57,7 @@ parse_ref = function(ref, pkg_name, ns, deps){
   .fun = paste(ref_chr, collapse="\n")
 
   pd = getParseData(parse(text=.fun))
-  if(FALSE){
+  if(!identical(Sys.getenv("TESTTHAT"), "true")){
     #hacky workaround for testing
     #cf. https://github.com/r-lib/testthat/issues/2008
     #declare global list "debug_pd" first
