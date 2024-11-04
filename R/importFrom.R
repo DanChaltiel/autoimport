@@ -55,7 +55,19 @@ parse_ref = function(ref, pkg_name, ns, deps){
     str_subset(ignore, negate=TRUE)
 
   .fun = paste(ref_chr, collapse="\n")
+
   pd = getParseData(parse(text=.fun))
+  if(FALSE){
+    #hacky workaround for testing
+    #cf. https://github.com/r-lib/testthat/issues/2008
+    #declare global list "debug_pd" first
+    debug_pd[[.fun]] <<- pd
+    write_rds(debug_pd, test_path("inst/debug_pd.rds"))
+  }
+  if(is.null(pd) && !is.null(getOption("autoimport_debug_pd"))){
+    pd = getOption("autoimport_debug_pd")[[.fun]]
+  }
+  # cli_abort(c("pd={pd}", i=".fun={ .fun}"))
   # pd = getParseData(parse(text=str_replace_all(.fun, "~", "")))
   non_comment = pd %>% filter(token!="COMMENT") %>% pull(text) %>% paste(collapse="")
   nms = pd$text[pd$token == "SYMBOL_FUNCTION_CALL"] %>% unique()
