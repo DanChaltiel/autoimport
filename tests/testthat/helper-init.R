@@ -46,7 +46,13 @@ digest::sha1
 
 # Directories ---------------------------------------------------------------------------------
 
-
+dir_source_bak = test_path("source_bak")
+dir_source = test_path("source")
+dir_output = test_path("output")
+namespace_file = test_path("inst/NAMESPACE")
+bad_namespace_file = test_path("inst/BAD_NAMESPACE")
+description_file = test_path("inst/DESCRIPTION")
+importlist_file = test_path("inst/IMPORTLIST")
 
 # if(!is_testing()){
 #   dir_new=paste0("tests/testthat/", dir_new)

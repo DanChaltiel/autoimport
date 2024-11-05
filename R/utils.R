@@ -120,7 +120,7 @@ set_names_ref = function(refs, warn_guess=FALSE){
 #' @importFrom purrr map_lgl
 #' @importFrom rlang set_names
 #' @noRd
-get_anywhere = function(fun, prefer=".GlobalEnv"){
+get_anywhere = function(fun, prefer=NULL){
   # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
 
   pkgs = loadedNamespaces() %>% set_names() %>% map_lgl(~{

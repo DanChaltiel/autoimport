@@ -1,32 +1,36 @@
 
-dir_source_bak=test_path("source_bak")
-dir_source=test_path("source")
-dir_output=test_path("output")
-namespace_file=test_path("inst/NAMESPACE")
-bad_namespace_file=test_path("inst/BAD_NAMESPACE")
-description_file=test_path("inst/DESCRIPTION")
-importlist_file=test_path("inst/IMPORTLIST")
+dir_source_save = test_path("source_save")
+dir_source = test_path("source")
+dir_output = test_path("output")
+namespace_file = test_path("inst/NAMESPACE")
+bad_namespace_file = test_path("inst/BAD_NAMESPACE")
+description_file = test_path("inst/DESCRIPTION")
+importlist_file = test_path("inst/IMPORTLIST")
 
 
 test_that("autoimport", {
-
-  clean_cache()
+  #set options
   local_reproducible_output(width=125)
-  withr::local_options(autoimport_target_dir = dir_output)
-  withr::local_options(autoimport_importlist=importlist_file)
-  withr::local_options(rlang_backtrace_on_error="full")
-  withr::local_options(autoimport_testing_ask_save_importlist=1) #Yes
-  # withr::local_options(autoimport_testing_ask_save_importlist=2) #No
+  withr::local_options(
+    autoimport_target_dir = dir_output,
+    autoimport_importlist = importlist_file,
+    rlang_backtrace_on_error = "full",
+    autoimport_testing_ask_save_importlist = 2 #2=No, 1=Yes
+  )
+
+  #load the test namespace
+  pkgload::load_all(path=dir_source_save, helpers=FALSE, quiet=TRUE)
 
   #restart folders
-  unlink(glue::glue("{dir_output}/*"), recursive=T, force=T)
-  unlink(glue::glue("{dir_source}/*"), recursive=T, force=T)
+  unlink(glue::glue("{dir_output}/*"), recursive=TRUE, force=TRUE)
+  unlink(glue::glue("{dir_source}/*"), recursive=TRUE, force=TRUE)
   expect_length(dir(dir_source), 0)
-  file.copy(dir(dir_source_bak, full.names=TRUE), to=dir_source, overwrite=TRUE)
+  file.copy(dir(dir_source_save, full.names=TRUE, recursive=TRUE), to=dir_source, overwrite=TRUE)
 
+  #snapshot
   expect_snapshot({
-    autoimport(files=dir(dir_source, full.names=TRUE),
-               pkg_name="autoimport",
+    autoimport(files=dir(dir_source, full.names=TRUE, pattern="\\.R$"),
+               pkg_name="autoimport_test",
                ignore_package=TRUE,
                use_cache=FALSE,
                namespace_file=namespace_file,

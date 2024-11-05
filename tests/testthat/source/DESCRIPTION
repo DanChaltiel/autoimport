@@ -1,0 +1,43 @@
+Package: autoimport_test
+Version: 0.0.1.9000
+Title: Automatically generate @importFrom roxygen tags
+Authors@R: 
+    c(person(given = "Dan",
+             family = "Chaltiel",
+             role = c("aut", "cre"),
+             email = "dan.chaltiel@gmail.com",
+             comment = c(ORCID = "0000-0003-3488-779X")))
+Description: A toolbox to read all R files inside a package and
+    automatically generate @importFrom roxygen in the right place.
+License: GPL-3
+Depends:
+    R (>= 3.1.0)
+Imports:
+    cli,
+    desc,
+    devtools,
+    diffviewer,
+    digest,
+    dplyr,
+    glue,
+    lifecycle,
+    purrr,
+    readr,
+    rlang,
+    rstudioapi,
+    shiny,
+    stringr,
+    tibble,
+    tidyr,
+    utils,
+    withr
+Suggests: 
+    callr,
+    covr,
+    knitr,
+    testthat (>= 3.0.0),
+    tidyverse
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Config/testthat/edition: 3

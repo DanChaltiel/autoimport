@@ -12,7 +12,8 @@
 #'
 #' @section a section:
 #' content
-#' @importFrom dplyr filter mutate select
+#' @importFrom autoimport write_utf8
+#' @importFrom dplyr select
 #' @importFrom purrr map
 #' @export
 #'
@@ -20,9 +21,9 @@
 #
 f1 = function(x){
   x = date(x)
-  x = mutate(x, a=0)
+  x = mutate(x, a=0) #private function, should not be imported
   x = write_utf8(x, a=0)
-  x = filter(x, TRUE)
+  x = filter(x, TRUE)  #private function, should not be imported
   x = select(x, TRUE)
   x = knitr::asis_output(all(x), TRUE)
   x = "#' @importFrom dplyr mutate"
