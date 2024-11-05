@@ -56,19 +56,7 @@ parse_ref = function(ref, pkg_name, ns, deps){
 
   .fun = paste(ref_chr, collapse="\n")
 
-  pd = getParseData(parse(text=.fun))
-  if(!identical(Sys.getenv("TESTTHAT"), "true")){
-    #hacky workaround for testing
-    #cf. https://github.com/r-lib/testthat/issues/2008
-    #declare global list "debug_pd" first
-    debug_pd[[.fun]] <<- pd
-    write_rds(debug_pd, test_path("inst/debug_pd.rds"))
-  }
-  if(is.null(pd) && !is.null(getOption("autoimport_debug_pd"))){
-    pd = getOption("autoimport_debug_pd")[[.fun]]
-  }
-  # cli_abort(c("pd={pd}", i=".fun={ .fun}"))
-  # pd = getParseData(parse(text=str_replace_all(.fun, "~", "")))
+  pd = getParseData(parse(text=.fun, keep.source = TRUE))
   non_comment = pd %>% filter(token!="COMMENT") %>% pull(text) %>% paste(collapse="")
   nms = pd$text[pd$token == "SYMBOL_FUNCTION_CALL"] %>% unique()
 
@@ -110,6 +98,7 @@ empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character
                            action = character(0), reason = character(0), pkgs = list()),
                       row.names = integer(0), class = "data.frame")
 
+#' used in [list_importFrom()]
 #' @importFrom cli cli_warn
 #' @importFrom dplyr arrange filter mutate pull
 #' @importFrom glue glue
@@ -120,6 +109,7 @@ parse_function = function(ref, pkg_name, ns, deps){
   loc = parse_ref(ref, pkg_name, ns, deps)
   if(is.null(loc)) return(empty_ref)
   if(nrow(loc)==0) return(loc)
+
 
   rslt = loc %>%
     split(.$fun) %>%

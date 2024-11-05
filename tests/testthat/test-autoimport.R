@@ -7,7 +7,6 @@ bad_namespace_file=test_path("inst/BAD_NAMESPACE")
 description_file=test_path("inst/DESCRIPTION")
 importlist_file=test_path("inst/IMPORTLIST")
 
-debug_pd = readRDS(test_path("inst/debug_pd.rds"))
 
 test_that("autoimport", {
 
@@ -15,7 +14,6 @@ test_that("autoimport", {
   withr::local_options(autoimport_importlist=importlist_file)
   withr::local_options(rlang_backtrace_on_error="full")
   withr::local_options(autoimport_testing_ask_save_importlist=1) #Yes
-  withr::local_options(autoimport_debug_pd=debug_pd) #Yes
   # withr::local_options(autoimport_testing_ask_save_importlist=2) #No
 
   #restart folders
