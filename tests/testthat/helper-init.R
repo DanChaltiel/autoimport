@@ -71,6 +71,23 @@ options(
 # file.copy(dir(dir_old_bak, full.names=TRUE), to=dir_old, overwrite=TRUE)
 
 
+# Helpers -------------------------------------------------------------------------------------
+
+poor_diff = function(file){
+  file_old = test_path("source", file)
+  file_new = test_path("output", file)
+  assert_file_exists(file_old)
+  if(!file.exists(file_new)) return(NULL)
+
+  a = readLines(file_old)
+  b = readLines(file_new)
+  common = intersect(a, b)
+  adds = setdiff(b, a)
+  removals = setdiff(a, b)
+
+  lst(common, adds, removals)
+}
+
 # All clear! ----------------------------------------------------------------------------------
 
 cli::cli_inform(c(v="Initializer {.file tests/testthat/helper-init.R} loaded",

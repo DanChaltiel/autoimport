@@ -47,11 +47,8 @@ f2 <- function(x){
   stop("ok")
 }
 
-f3 = function(){
-  TRUE
-}
 
-
+#' @importFrom dplyr select
 f3 <- function(x){
   x = select(x, TRUE)
   stop("ok")
@@ -62,3 +59,6 @@ f3 <- function(x){
 dplyr::`%>%`
 
 1
+
+#this is
+#a trailing comment

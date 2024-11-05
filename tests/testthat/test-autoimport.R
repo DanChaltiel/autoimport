@@ -10,6 +10,8 @@ importlist_file=test_path("inst/IMPORTLIST")
 
 test_that("autoimport", {
 
+  clean_cache()
+  local_reproducible_output(width=125)
   withr::local_options(autoimport_target_dir = dir_output)
   withr::local_options(autoimport_importlist=importlist_file)
   withr::local_options(rlang_backtrace_on_error="full")
@@ -22,7 +24,6 @@ test_that("autoimport", {
   expect_length(dir(dir_source), 0)
   file.copy(dir(dir_source_bak, full.names=TRUE), to=dir_source, overwrite=TRUE)
 
-  # browser()
   expect_snapshot({
     autoimport(files=dir(dir_source, full.names=TRUE),
                pkg_name="autoimport",
@@ -31,9 +32,13 @@ test_that("autoimport", {
                namespace_file=namespace_file,
                description_file=description_file,
                ask=FALSE, verbose=2)
+
+    poor_diff("sample_code-package.R")
+    poor_diff("sample_funs.R")
+    poor_diff("sample_funs2.R")
   })
 
-    # withr::deferred_clear()
+  # withr::deferred_clear()
 })
 
 

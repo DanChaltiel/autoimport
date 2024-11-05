@@ -47,10 +47,6 @@ f2 <- function(x){
   stop("ok")
 }
 
-f3 = function(){
-  TRUE
-}
-
 
 f3 <- function(x){
   x = select(x, TRUE)
@@ -62,3 +58,6 @@ f3 <- function(x){
 dplyr::`%>%`
 
 1
+
+#this is
+#a trailing comment
