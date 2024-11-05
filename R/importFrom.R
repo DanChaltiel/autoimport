@@ -117,6 +117,9 @@ parse_function = function(ref, pkg_name, ns, deps){
       rtn = list(.x$pkg)
       action = "nothing"
 
+      if(identical(.y, getOption("autoimport_debug_function")) & is_interactive()){
+        browser()
+      }
       ###-- TESTING --###
       # .y is the name of the function
       # if(.y=="get_importlist") browser()
