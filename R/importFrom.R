@@ -56,9 +56,14 @@ parse_ref = function(ref, pkg_name, ns, deps){
 
   .fun = paste(ref_chr, collapse="\n")
 
-  pd = getParseData(parse(text=.fun, keep.source = TRUE))
+  pd = getParseData(parse(text=.fun, keep.source=TRUE))
   non_comment = pd %>% filter(token!="COMMENT") %>% pull(text) %>% paste(collapse="")
   nms = pd$text[pd$token == "SYMBOL_FUNCTION_CALL"] %>% unique()
+
+  inner_vars = pd %>%
+    filter(token!="expr") %>%
+    filter(str_detect(lead(token), "ASSIGN") & token=="SYMBOL") %>%
+    pull(text)
 
   if(getOption("ignore_prefixed", TRUE)){
     nms_prefixed = pd$token == "SYMBOL_FUNCTION_CALL" & lag(pd$token,n=2)=="SYMBOL_PACKAGE"
@@ -77,20 +82,22 @@ parse_ref = function(ref, pkg_name, ns, deps){
   loc = nms %>%
     as_tibble_col(column_name="fun") %>%
     mutate(pkg_bak = map(fun, ~get_anywhere(.x, prefer=c(pkg_name, ".GlobalEnv")))) %>%
+    # mutate(pkg_bak = map(fun, ~get_anywhere(.x))) %>%
     unchop(pkg_bak, keep_empty=TRUE) %>%
     mutate(
       pkg = map_chr(fun, ~imported_from(.x, ns)),
-      pkg = ifelse(is.na(pkg), pkg_bak, pkg),
+      pkg = ifelse(is.na(pkg) | pkg_bak==pkg_name, pkg_bak, pkg),
       label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
       pkg_in_desc = pkg %in% deps$package,
       pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
+      fun_is_inner = fun %in% inner_vars,
+      fun_is_private = pkg_bak==pkg_name,
       fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$from==.x & ns$importFrom$what==.y)}),
     ) %>%
     # distinct(label, .keep_all=TRUE) %>% print(n=50) %>%
     distinct(pkg, fun, .keep_all=TRUE) %>%
     arrange(fun, desc(fun_imported), desc(pkg_n_imports), pkg_in_desc)
 
-  # browser()
   loc
 }
 
@@ -99,6 +106,7 @@ empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character
                       row.names = integer(0), class = "data.frame")
 
 #' used in [list_importFrom()]
+#' calls [parse_ref()]
 #' @importFrom cli cli_warn
 #' @importFrom dplyr arrange filter mutate pull
 #' @importFrom glue glue
@@ -106,6 +114,7 @@ empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character
 #' @importFrom tibble tibble
 #' @noRd
 parse_function = function(ref, pkg_name, ns, deps){
+
   loc = parse_ref(ref, pkg_name, ns, deps)
   if(is.null(loc)) return(empty_ref)
   if(nrow(loc)==0) return(loc)
@@ -117,18 +126,17 @@ parse_function = function(ref, pkg_name, ns, deps){
       rtn = list(.x$pkg)
       action = "nothing"
 
-      if(identical(.y, getOption("autoimport_debug_function")) & is_interactive()){
-        browser()
-      }
       ###-- TESTING --###
       # .y is the name of the function
-      # if(.y=="get_importlist") browser()
+      # if(.y=="mutate") browser()
 
       if(nrow(.x)==1) {
-        if(is.na(.x$pkg)) {
+        if(isTRUE(.x$fun_is_inner)) {
+          reason = glue("`{.y}()` is declared inside `fun()`.")
+        } else if(is.na(.x$pkg)) {
           action = "warn"
           reason = glue("`{.y}()` not found in any loaded package.")
-        } else if(.x$pkg==pkg_name) {
+        } else if(.x$pkg==pkg_name | .x$pkg_bak==pkg_name) {
           reason = glue("`{.x$fun}()` is internal to {pkg_name}")
         } else if(.x$pkg=="base") {
           reason = glue("`{.x$fun}()` is base R")
@@ -172,6 +180,7 @@ parse_function = function(ref, pkg_name, ns, deps){
   rslt
 }
 
+#' used in [autoimport_parse()]
 #' @importFrom cli cli_inform
 #' @importFrom purrr imap
 #' @importFrom stringr str_starts
