@@ -251,3 +251,42 @@ clean_cache = function(){
   unlink(cache_dir, recursive=TRUE)
   invisible(TRUE)
 }
+
+
+#' because base::parseNamespaceFile() is not very handy for my use.
+#' @importFrom cli cli_abort
+#' @importFrom dplyr arrange filter mutate rename select
+#' @importFrom purrr map map_chr
+#' @importFrom tibble tibble
+#' @importFrom tidyr complete
+#' @noRd
+#' @keywords internal
+parse_namespace = function(file){
+  test_file = getOption("test_file")
+  if(!is.null(test_file)) file = test_file
+
+  directives = parse(file, keep.source = FALSE, srcfile = NULL) %>% as.list()
+  rtn = tibble(operator = map_chr(directives, ~as.character(.x[1])),
+               value = map_chr(directives, ~as.character(.x[2])),
+               details = map_chr(directives, ~as.character(.x[3]))) %>%
+    mutate(operator=factor(operator, levels=c("export", "import", "importFrom"))) %>%
+    complete(operator) %>%
+    split(.$operator) %>%
+    map(~.x %>% filter(!is.na(value)))
+
+  rtn$export = rtn$export %>% select(-details)
+  rtn$import = rtn$import %>% rename(except=details)
+  rtn$importFrom = rtn$importFrom %>% rename(from=value, what=details)
+
+  if(anyDuplicated(rtn$importFrom$what)!=0){
+    x = rtn$importFrom %>%
+      filter(what %in% what[duplicated(what)]) %>%
+      arrange(what, from)
+    label = paste(x$from, x$what, sep="::")
+    cli_abort(c("Duplicate `importFrom` mention in {.file {file}}",
+                i="{.fun {label}}"),
+              class="autoimport_namespace_dup_error",
+              call=main_caller$env)
+  }
+  rtn
+}
