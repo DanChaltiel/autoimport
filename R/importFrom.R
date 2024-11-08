@@ -73,37 +73,129 @@ parse_ref = function(ref, pkg_name, ns, deps){
 
   if(length(nms)==0) return(NULL)
 
-  imported_from = function(fun, ns){
-    x=ns$importFrom$from[ns$importFrom$what==fun]
-    if(length(x)==0) x=NA
-    x
+  # already_imported = function(fun, ns){
+  #   a = ns$importFrom$what==fun
+  #   if(!any(a)) return(NA)
+  #   ns$importFrom$from[ns$importFrom$what==fun]
+  # }
+
+  #' get function source, with prioritizing known source if
+  #' function is already imported or if it is private to the
+  #' tested package
+  get_source_package = function(fun, pkg, ns, pkg_name){
+    # ai = already_imported(fun, ns=ns)
+    # if(!is.na(ai)) return(tibble(fun=fun, pkg=ai,
+    #                              fun_already_imported=TRUE, fun_is_private=FALSE))
+
+    # if(fun=="abort") browser()
+    pkg = get_anywhere(fun, add_pkgs=unique(ns$importFrom$from))
+    already_imported = ns$importFrom$what==fun
+    is_private = is_exported(fun, pkg=pkg_name, type=":::")
+    if(isTRUE(is_private)) {
+      pkg = pkg_name
+    }
+    if(any(already_imported)) {
+      pkg = ns$importFrom$from[already_imported]
+    }
+
+    if(length(pkg)==0){
+      #TODO move higher to show 1 warning with all missing functions
+      cli_warn("Function {.fn {fun}} was not found in any loaded package.",
+               class="autoimport_fun_not_found_warn")
+    }
+    if(isTRUE(is_private) && any(already_imported)){
+      cli_abort("Function {.fn {fun}} is both imported from {.pkg {pkg}} in
+                NAMESPACE and declared as a private function in {.pkg {pkg_name}}.",
+                class="autoimport_conflict_import_private")
+    }
+
+    tibble(fun=fun, pkg=pkg, fun_is_private=is_private, fun_already_imported=FALSE)
   }
 
-  loc = nms %>%
-    as_tibble_col(column_name="fun") %>%
-    mutate(pkg_bak = map(fun, ~get_anywhere(.x, prefer=c(pkg_name, ".GlobalEnv")))) %>%
-    # mutate(pkg_bak = map(fun, ~get_anywhere(.x))) %>%
-    unchop(pkg_bak, keep_empty=TRUE) %>%
+  loc =
+  nms %>%
+    set_names() %>%
+    map(~get_source_package(fun=.x, pkg=pkg, ns=ns, pkg_name=pkg_name)) %>%
+    bind_rows() %>%
+    arrange(fun) %>%
     mutate(
-      pkg = map_chr(fun, ~imported_from(.x, ns)),
-      pkg = ifelse(is.na(pkg) | pkg_bak==pkg_name, pkg_bak, pkg),
       label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
       pkg_in_desc = pkg %in% deps$package,
       pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
       fun_is_inner = fun %in% inner_vars,
-      fun_is_private = pkg_bak==pkg_name,
-      fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$from==.x & ns$importFrom$what==.y)}),
+      fun_is_private = pkg==pkg_name,
+      fun_is_base = pkg %in% get_base_packages()
     ) %>%
-    # distinct(label, .keep_all=TRUE) %>% print(n=50) %>%
-    distinct(pkg, fun, .keep_all=TRUE) %>%
-    arrange(fun, desc(fun_imported), desc(pkg_n_imports), pkg_in_desc)
+    select(fun, pkg, label, starts_with("pkg_"), starts_with("fun_")) %>%
+    arrange(fun,
+            desc(fun_is_inner),
+            desc(fun_is_private),
+            desc(fun_already_imported),
+            desc(pkg_in_desc),
+            desc(pkg_n_imports),
+            fun_is_base) #base packages last
+
+
+  # already_imported = function(fun, ns){
+  #   a = ns$importFrom$what==fun
+  #   if(!any(a)) return(NA)
+  #   ns$importFrom$from[ns$importFrom$what==fun]
+  # }
+  # loc =
+  # nms %>%
+  #   set_names() %>%
+  #   map(~{
+  #     ai = already_imported(.x, ns=ns)
+  #     if(!is.na(ai)) return(tibble(fun=.x, pkg=ai, fun_already_imported=TRUE))
+  #     pkg = get_anywhere(.x, add_pkgs=unique(ns$importFrom$from))
+  #     tibble(fun=.x, pkg=pkg, fun_already_imported=FALSE)
+  #   }) %>%
+  #   bind_rows() %>%
+  #   mutate(
+  #     label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
+  #     pkg_in_desc = pkg %in% deps$package,
+  #     pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
+  #     fun_is_inner = fun %in% inner_vars,
+  #     fun_is_private = pkg==pkg_name,
+  #     fun_is_base = pkg %in% get_base_packages()
+  #   ) %>%
+  #   select(fun, pkg, label, starts_with("pkg_"), starts_with("fun_")) %>%
+  #   arrange(fun,
+  #           desc(fun_is_inner),
+  #           desc(fun_is_private),
+  #           desc(fun_already_imported),
+  #           desc(pkg_in_desc),
+  #           desc(pkg_n_imports),
+  #           fun_is_base) #base packages last
+
+
+  # loc = nms %>%
+  #   as_tibble_col(column_name="fun") %>%
+  #   # mutate(pkg_bak = map(fun, ~get_anywhere(.x, prefer=c(pkg_name, ".GlobalEnv")))) %>%
+  #   mutate(pkg_bak = map(fun, ~get_anywhere(.x, add_pkgs=unique(ns$importFrom$from)))) %>%
+  #   # mutate(pkg_bak = map(fun, ~get_anywhere(.x))) %>%
+  #   unchop(pkg_bak, keep_empty=TRUE) %>%
+  #   mutate(
+  #     pkg = map_chr(fun, ~already_imported(.x, ns=ns)),
+  #     pkg = ifelse(is.na(pkg) | pkg_bak==pkg_name, pkg_bak, pkg),
+  #     label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
+  #     pkg_in_desc = pkg %in% deps$package,
+  #     pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
+  #     fun_is_inner = fun %in% inner_vars,
+  #     fun_is_private = pkg_bak==pkg_name,
+  #     fun_imported = map2_lgl(pkg, fun, ~{any(ns$importFrom$from==.x & ns$importFrom$what==.y)}),
+  #   ) %>%
+  #   # distinct(label, .keep_all=TRUE) %>% print(n=50) %>%
+  #   arrange(fun,
+  #           desc(fun_is_private), desc(fun_is_inner),
+  #           desc(fun_imported), desc(pkg_n_imports),
+  #           pkg_in_desc) %>%
+  #   # distinct(pkg, fun, .keep_all=TRUE) %>%
+  #   identity()
 
   loc
 }
 
-empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character(0),
-                           action = character(0), reason = character(0), pkgs = list()),
-                      row.names = integer(0), class = "data.frame")
 
 #' used in [list_importFrom()]
 #' calls [parse_ref()]
@@ -114,7 +206,9 @@ empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character
 #' @importFrom tibble tibble
 #' @noRd
 parse_function = function(ref, pkg_name, ns, deps){
-
+  empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character(0),
+                             action = character(0), reason = character(0), pkgs = list()),
+                        row.names = integer(0), class = "data.frame")
   loc = parse_ref(ref, pkg_name, ns, deps)
   if(is.null(loc)) return(empty_ref)
   if(nrow(loc)==0) return(loc)
@@ -136,11 +230,11 @@ parse_function = function(ref, pkg_name, ns, deps){
         } else if(is.na(.x$pkg)) {
           action = "warn"
           reason = glue("`{.y}()` not found in any loaded package.")
-        } else if(.x$pkg==pkg_name | .x$pkg_bak==pkg_name) {
+        } else if(.x$pkg==pkg_name) {
           reason = glue("`{.x$fun}()` is internal to {pkg_name}")
         } else if(.x$pkg=="base") {
           reason = glue("`{.x$fun}()` is base R")
-        } else if(isTRUE(.x$fun_imported)) {
+        } else if(isTRUE(.x$fun_already_imported)) {
           reason = glue("`{.x$label}()` is unique and already imported.")
         # } else if(isFALSE(.x$pkg_in_desc)) {
         #TODO warning si pas dans description
@@ -153,11 +247,11 @@ parse_function = function(ref, pkg_name, ns, deps){
         }
 
       } else {
-        imported = .x %>% filter(fun_imported)
+        imported = .x %>% filter(fun_already_imported)
         base = .x %>% filter(pkg=="base")
 
         if(nrow(imported)>1) {
-          dups = .x %>% filter(fun_imported) %>% pull(label)
+          dups = .x %>% filter(fun_already_imported) %>% pull(label)
           cli_warn(c("There are duplicates in NAMESPACE??", i="Functions: {.fun {dups}}"))
         } else if(nrow(imported)==1){
           rtn = list(imported$pkg)

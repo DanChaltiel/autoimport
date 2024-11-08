@@ -111,27 +111,34 @@ set_names_ref = function(refs, warn_guess=FALSE){
 
 #' A rewrite around [utils::getAnywhere()]
 #'
-#' Find all the packages that hold a function. `utils::getAnywhere()` annoyingly use `find()` which yield false positives.
+#' Used in [parse_ref()], requires using `register_namespace()` beforehand.
+#' Find all the packages that hold a function. `utils::getAnywhere()` annoyingly uses `find()` which yields false positives.
 #'
 #' @param fun a function name (character)
-#' @param prefer packages that should be prioritized. Usually the main package name and `.GlobalEnv`.
+#' @param add_pkgs packages to look into, added to `loadedNamespaces()` (character)
 #'
 #' @return a character vector of package names
 #' @importFrom purrr map_lgl
 #' @importFrom rlang set_names
 #' @noRd
-get_anywhere = function(fun, prefer=NULL){
-  # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique()
+get_anywhere = function(fun, add_pkgs=NULL){
+  pkgs = c(loadedNamespaces(), add_pkgs) %>% unique() %>% set_names() %>%
+    map_lgl(~is_exported(fun, pkg=.x)) %>% keep(isTRUE) %>% names() %>% sort()
+  pkgs
+}
 
+#' @noRd
+get_anywhere_bak = function(fun, prefer=NULL){
+  # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique() %>% sort()
   pkgs = loadedNamespaces() %>% set_names() %>% map_lgl(~{
-    exists(fun, envir=asNamespace(.x), inherits=FALSE)
+    exists(fun, envir=asNamespace(.x), inherits=FALSE, mode="function")
   })
   pkgs = sort(names(pkgs[pkgs]))
 
   pref = pkgs[pkgs %in% prefer]
   if(length(pref)>0) return(pref)
 
-  exported = map_lgl(pkgs, ~is_exported(fun, .x))
+  exported = map_lgl(pkgs, ~is_exported_bak(fun, .x))
   pkgs[exported]
 }
 
@@ -147,7 +154,7 @@ register_namespace = function(name){
 #' @importFrom rlang is_installed
 #' @importFrom withr with_package
 #' @noRd
-is_exported = function(fun, pkg, fail=FALSE){
+is_exported_bak = function(fun, pkg, fail=FALSE){
   if(!is_installed(pkg)){
     if(fail) cli_abort("{.pkg {pkg}} is not installed")
     return(FALSE)
@@ -157,6 +164,26 @@ is_exported = function(fun, pkg, fail=FALSE){
   l = suppressWarnings(with_package(pkg, try(ls(paste0("package:",pkg)), silent=TRUE), quietly=TRUE))
   if(inherits(l, "try-error")) return(FALSE)
   fun %in% l
+}
+
+#' is_exported("div", "htmltools")
+#' is_exported("div", "shiny")
+#' is_exported("dfsdsf", "shiny")
+#' @importFrom rlang check_installed
+#' @noRd
+is_exported = function(fun, pkg, type="::", fail=FALSE){
+  if(!is_installed(pkg)){
+    if(fail) cli_abort("{.pkg {pkg}} is not installed")
+    return(FALSE)
+  }
+  text = paste0(pkg, type, fun)
+  f = try(eval(parse(text=text)), silent=TRUE)
+  is.function(f)
+}
+
+#' @noRd
+get_base_packages = function(){
+  rownames(installed.packages(priority="base"))
 }
 
 #' @importFrom devtools as.package
