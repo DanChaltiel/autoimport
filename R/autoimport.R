@@ -94,7 +94,7 @@ autoimport_read = function(lines_list, verbose) {
   if(verbose>0) cli_inform(c(v="Found a total of {tot_refs} internal functions
                              in {length(lines_list)} files ({tot_lines} lines)."))
 
-  check_duplicated(ref_list, verbose)
+  warn_duplicated(ref_list, verbose)
   lst(ref_list)
 }
 
@@ -150,6 +150,7 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
 
   n_imports = import_list %>% map_depth(2, nrow) %>% unlist() %>% sum()
   if(verbose>0) cli_inform(c(v="Found a total of {n_imports} potential function{?s} to import"))
+  warn_not_found(import_list, verbose)
 
   user_choice = get_user_choice(import_list, ask=ask, ns=ns, importlist_path=importlist_path)
 
@@ -165,7 +166,7 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
 #' @importFrom stringr str_ends
 #' @importFrom tibble tibble
 autoimport_write = function(import_list, ref_list, lines_list, user_choice, ignore_package,
-                             pkg_name, target_dir, verbose) {
+                            pkg_name, target_dir, verbose) {
 
   if(verbose>0) cli_h1("Writing")
 
@@ -240,7 +241,7 @@ add_trailing_comment_lines = function(lines2, lines){
 #' @importFrom stringr str_detect
 #' @importFrom utils stack
 #' @noRd
-check_duplicated = function(ref_list, verbose) {
+warn_duplicated = function(ref_list, verbose) {
   dups = ref_list %>%
     map(names) %>% stack() %>%
     filter(values %in% values[duplicated(values)],
@@ -254,5 +255,35 @@ check_duplicated = function(ref_list, verbose) {
              class="autoimport_duplicate_warn")
     message(paste0(capture.output(dups), collapse = "\n"))
   }
-  TRUE
+  invisible(TRUE)
+}
+
+#' @importFrom cli format_inline
+#' @noRd
+warn_not_found = function(import_list, verbose, remove_dir=FALSE){
+  not_found = import_list %>%
+    map(bind_rows, .id="file") %>%
+    bind_rows(.id="source") %>%
+    as_tibble() %>%
+    #filter(map_lgl(pkg, ~any(is.na(.x))))
+    filter(is.na(pkg)) %>%
+    select(fun, source)
+
+  folder = dirname(not_found$source)
+  if(isFALSE(remove_dir) && n_distinct(folder)==1){
+    not_found$source = str_remove(not_found$source, paste0(folder, "/?"))
+  }
+
+  if(nrow(not_found)>0){
+    cli_h2("Warning - Not found")
+    txt = "{qty(fun)}Function{?s} {.fn {fun}} (in {.file {unique(source)}})"
+    i = not_found %>%
+      summarise(label = format_inline(txt),
+                .by=source) %>%
+      pull(label) %>%
+      set_names("i")
+    cli_warn(c("Functions not found:", i),
+             class="autoimport_fun_not_found_warn")
+  }
+  invisible(TRUE)
 }

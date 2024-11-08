@@ -178,10 +178,8 @@ get_function_source = function(fun, pkg, ns, pkg_name){
   if(any(already_imported)) {
     pkg = ns$importFrom$from[already_imported]
   }
-
-  if(length(pkg)==0){
-    cli_warn("Function {.fn {fun}} was not found in any loaded package.",
-             class="autoimport_fun_not_found_warn")
+  if(length(pkg)==0) {
+    pkg = NA
   }
   if(isTRUE(is_private) && any(already_imported)){
     cli_abort("Function {.fn {fun}} is both imported from {.pkg {pkg}} in
