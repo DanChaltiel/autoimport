@@ -77,10 +77,11 @@ parse_ref = function(ref, pkg_name, ns, deps){
     bind_rows() %>%
     arrange(fun) %>%
     mutate(
+      fun_is_inner = fun %in% inner_vars,
+      pkg = ifelse(fun_is_inner, "inner", pkg),
       label = ifelse(is.na(pkg), NA, paste(pkg, fun, sep="::")),
       pkg_in_desc = pkg %in% deps$package,
       pkg_n_imports = map_int(pkg, ~sum(ns$importFrom$from==.x)),
-      fun_is_inner = fun %in% inner_vars,
       fun_is_private = pkg==pkg_name,
       fun_is_base = pkg %in% get_base_packages()
     ) %>%

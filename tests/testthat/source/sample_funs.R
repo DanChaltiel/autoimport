@@ -33,9 +33,13 @@ f1 = function(x){
   x = pivot_longer(x, a=0)
   x = set_names(map(x), TRUE)
   x = div(x, TRUE) #from shiny, not html
-  #should be ignored
+  #juste a variable, should be ignored
   x = "#' @importFrom dplyr mutate"
+  #inner function, should be ignored
   f = function(a) a
+  x = f()
+  g = if(TRUE) na.omit else identity
+  x = g()
   stop("ok")
 }
 

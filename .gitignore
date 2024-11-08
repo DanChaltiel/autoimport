@@ -13,4 +13,5 @@ todo*
 *local*
 errors
 out
+tests/testthat/output*
 internal.md
