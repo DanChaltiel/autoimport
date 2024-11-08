@@ -118,7 +118,7 @@ set_names_ref = function(refs, warn_guess=FALSE){
 #' @param add_pkgs packages to look into, added to `loadedNamespaces()` (character)
 #'
 #' @return a character vector of package names
-#' @importFrom purrr map_lgl
+#' @importFrom purrr keep map_lgl
 #' @importFrom rlang set_names
 #' @noRd
 get_anywhere = function(fun, add_pkgs=NULL){
@@ -128,6 +128,8 @@ get_anywhere = function(fun, add_pkgs=NULL){
 }
 
 #' @noRd
+#' @importFrom purrr map_lgl
+#' @importFrom rlang set_names
 get_anywhere_bak = function(fun, prefer=NULL){
   # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique() %>% sort()
   pkgs = loadedNamespaces() %>% set_names() %>% map_lgl(~{
@@ -169,7 +171,8 @@ is_exported_bak = function(fun, pkg, fail=FALSE){
 #' is_exported("div", "htmltools")
 #' is_exported("div", "shiny")
 #' is_exported("dfsdsf", "shiny")
-#' @importFrom rlang check_installed
+#' @importFrom cli cli_abort
+#' @importFrom rlang is_installed
 #' @noRd
 is_exported = function(fun, pkg, type="::", fail=FALSE){
   if(!is_installed(pkg)){
@@ -182,6 +185,7 @@ is_exported = function(fun, pkg, type="::", fail=FALSE){
 }
 
 #' @noRd
+#' @importFrom utils installed.packages
 get_base_packages = function(){
   rownames(installed.packages(priority="base"))
 }

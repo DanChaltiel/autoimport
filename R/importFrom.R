@@ -42,11 +42,10 @@ parse_namespace = function(file){
 #' @param ref a ref
 #' @param pkg_name package name (character)
 #' @param ns result of `parse_namespace()`
-#' @importFrom dplyr arrange desc distinct filter lag mutate pull
-#' @importFrom purrr map map_chr map_int map2_lgl
-#' @importFrom stringr str_subset
-#' @importFrom tibble as_tibble_col
-#' @importFrom tidyr unchop
+#' @importFrom dplyr arrange bind_rows desc filter lag lead mutate pull select starts_with
+#' @importFrom purrr map map_int
+#' @importFrom rlang set_names
+#' @importFrom stringr str_detect str_subset
 #' @importFrom utils getParseData
 #' @noRd
 parse_ref = function(ref, pkg_name, ns, deps){
@@ -100,7 +99,7 @@ parse_ref = function(ref, pkg_name, ns, deps){
 
 #' used in [list_importFrom()]
 #' calls [parse_ref()]
-#' @importFrom cli cli_warn
+#' @importFrom cli cli_abort
 #' @importFrom dplyr arrange filter mutate pull
 #' @importFrom glue glue
 #' @importFrom purrr imap list_rbind map_chr
@@ -169,6 +168,10 @@ parse_function = function(ref, pkg_name, ns, deps){
 #' get function source, with prioritizing known source if
 #' function is already imported or if it is private to the
 #' tested package
+#' @noRd
+#' @keywords internal
+#' @importFrom cli cli_abort
+#' @importFrom tibble tibble
 get_function_source = function(fun, pkg, ns, pkg_name){
   # if(fun=="abort") browser()
   pkg = get_anywhere(fun, add_pkgs=unique(ns$importFrom$from))

@@ -17,9 +17,7 @@
 #'
 #' @importFrom cli cli_abort cli_h1 cli_inform
 #' @importFrom purrr map walk
-#' @importFrom rlang check_installed set_names
 #' @importFrom rlang check_installed current_env set_names
-#' @importFrom stringr str_subset
 autoimport = function(root=".",
                       files=get_R_dir(root),
                       pkg_name=get_package_name(root),
@@ -163,7 +161,6 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
 
 
 #' @importFrom cli cli_h1 cli_inform
-#' @importFrom glue glue
 #' @importFrom purrr imap map pmap
 #' @importFrom stringr str_ends
 #' @importFrom tibble tibble
@@ -207,8 +204,6 @@ autoimport_write = function(import_list, ref_list, lines_list, user_choice, igno
       write_utf8(out, lines2)
 
       if(verbose>0) cli_inform(c(v="Added {n_new} and removed {n_old} line{?s} from {.file {file}}."))
-
-      glue('{{.run diffviewer::visual_diff("{file}", "{out}")}}')
       tibble(file, out)
     }
   )
@@ -241,7 +236,7 @@ add_trailing_comment_lines = function(lines2, lines){
 #' @importFrom dplyr arrange filter mutate rename
 #' @importFrom purrr map
 #' @importFrom stringr str_detect
-#' @importFrom utils stack
+#' @importFrom utils capture.output stack
 #' @noRd
 warn_duplicated = function(ref_list, verbose) {
   dups = ref_list %>%
@@ -260,7 +255,11 @@ warn_duplicated = function(ref_list, verbose) {
   invisible(TRUE)
 }
 
-#' @importFrom cli format_inline
+#' @importFrom cli cli_h2 cli_warn format_inline
+#' @importFrom dplyr as_tibble bind_rows filter n_distinct pull select summarise
+#' @importFrom purrr map
+#' @importFrom rlang set_names
+#' @importFrom stringr str_remove
 #' @noRd
 warn_not_found = function(import_list, verbose, remove_dir=FALSE){
   not_found = import_list %>%
