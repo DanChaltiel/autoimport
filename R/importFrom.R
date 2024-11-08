@@ -30,7 +30,8 @@ parse_namespace = function(file){
     label = paste(x$from, x$what, sep="::")
     cli_abort(c("Duplicate `importFrom` mention in {.file {file}}",
                 i="{.fun {label}}"),
-              class="autoimport_namespace_dup_error")
+              class="autoimport_namespace_dup_error",
+              call=main_caller$env)
   }
   rtn
 }
@@ -185,7 +186,8 @@ get_function_source = function(fun, pkg, ns, pkg_name){
   if(isTRUE(is_private) && any(already_imported)){
     cli_abort("Function {.fn {fun}} is both imported from {.pkg {pkg}} in
                 NAMESPACE and declared as a private function in {.pkg {pkg_name}}.",
-              class="autoimport_conflict_import_private_error")
+              class="autoimport_conflict_import_private_error",
+              call=main_caller$env)
   }
 
   tibble(fun=fun, pkg=pkg, fun_is_private=is_private, fun_already_imported=FALSE)

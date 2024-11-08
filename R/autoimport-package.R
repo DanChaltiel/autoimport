@@ -12,3 +12,6 @@ utils::globalVariables(c(".", "x", "y", "fun", "pkg", "value", "values", "ind",
 #' @importFrom lifecycle deprecated
 ## usethis namespace: end
 "_PACKAGE"
+
+
+main_caller = rlang::env()

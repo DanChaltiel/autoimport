@@ -18,6 +18,7 @@
 #' @importFrom cli cli_abort cli_h1 cli_inform
 #' @importFrom purrr map walk
 #' @importFrom rlang check_installed set_names
+#' @importFrom rlang check_installed current_env set_names
 #' @importFrom stringr str_subset
 autoimport = function(root=".",
                       files=get_R_dir(root),
@@ -31,6 +32,7 @@ autoimport = function(root=".",
   ns = parse_namespace(namespace_file)
   importlist_path = file.path(root, "inst/IMPORTLIST")
   deps = desc::desc(file=description_file)$get_deps()
+  main_caller$env = current_env()
 
   cli_h1("Init")
   ns_loading = deps$package %>% setdiff("R")
