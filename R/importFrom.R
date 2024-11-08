@@ -10,8 +10,7 @@ parse_namespace = function(file){
   test_file = getOption("test_file")
   if(!is.null(test_file)) file = test_file
 
-  directives = parse(file, keep.source = FALSE, srcfile = NULL)
-
+  directives = parse(file, keep.source = FALSE, srcfile = NULL) %>% as.list()
   rtn = tibble(operator = map_chr(directives, ~as.character(.x[1])),
                value = map_chr(directives, ~as.character(.x[2])),
                details = map_chr(directives, ~as.character(.x[3]))) %>%
