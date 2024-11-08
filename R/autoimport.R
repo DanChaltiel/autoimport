@@ -187,7 +187,7 @@ autoimport_write = function(import_list, ref_list, lines_list, user_choice, igno
         return(NULL)
       }
 
-      inserts = imp_list %>% map(~get_inserts(.x, user_choice, exclude=c("base", pkg_name)))
+      inserts = imp_list %>% map(~get_inserts(.x, user_choice, exclude=c("base", "inner", pkg_name)))
       cli_inform(c(i="{length(unlist(inserts))} inserts in {.file {file}}"))
 
       lines2 = comments_refs %>%

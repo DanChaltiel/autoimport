@@ -17,6 +17,10 @@ test_that("autoimport", {
   #base function, should not be imported
   expect_not_imported(out1, ".*", "date")
 
+  #inner/private functions, should not be imported
+  expect_not_imported(out1, "inner", ".*")
+  expect_not_imported(out1, "autoimport_test", ".*")
+
   #other functions, should be imported
   expect_imported(out1, "tidyr", "pivot_longer")
   expect_imported(out1, "purrr", "map")
