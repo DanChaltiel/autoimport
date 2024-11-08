@@ -271,8 +271,9 @@ check_duplicated = function(ref_list, verbose) {
     arrange(fun)
   if(nrow(dups)>0){
     cli_h2("Warning - Duplicates")
-    cli_warn(c("x"="There is several functions with the same name:"))
-    print(dups)
+    cli_warn(c("x"="There is several functions with the same name:"),
+             class="autoimport_duplicate_warn")
+    message(paste0(capture.output(dups), collapse = "\n"))
   }
   TRUE
 }
