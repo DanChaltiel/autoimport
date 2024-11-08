@@ -2,7 +2,10 @@
 
 
 
-#duplicate function from another file
+#duplicate function
+f2 = function(){
+  1
+}
 f2 = function(){
   1
 }
@@ -28,5 +31,7 @@ foobar = function(){
   filter("foo")
   glimpse("foo")
   abcdefgh()
+  wxyz()
   bind_rows()
 }
+

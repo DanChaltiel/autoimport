@@ -2,6 +2,7 @@
 
 importFrom(cli,cli_warn)
 importFrom(devtools,as.package)
-importFrom(dplyr,mutate)
-importFrom(rlang,set_names)
+importFrom(dplyr,n)
+importFrom(rlang,abort)
+importFrom(shiny,a)
 importFrom(purrr,map)
