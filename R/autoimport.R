@@ -33,8 +33,7 @@ autoimport = function(root=".",
   deps = desc::desc(file=description_file)$get_deps()
 
   cli_h1("Init")
-  ns_loading = deps$package %>%
-    str_subset("^R$", negate=TRUE)
+  ns_loading = deps$package %>% setdiff("R")
   check_installed(ns_loading)
   walk(ns_loading, register_namespace)
   cli_inform(c(v="Registered namespaces of {length(ns_loading)} dependencies."))
@@ -55,14 +54,6 @@ autoimport = function(root=".",
                               ai_parse$user_choice, ignore_package,
                               pkg_name, target_dir, verbose)
 
-  #TODO faire un warning si une fonction n'est trouvée nulle part ?
-  #TODO faire un warning si namespace not loaded?
-  #TODO load all namespaces from DESCRIPTTION?
-  # data_parse = ai_parse$import_list %>%
-  #   map(~list_rbind(.x, names_to="caller")) %>%
-  #   list_rbind(names_to="file")
-  # data_parse %>% filter(action!="nothin")
-  # browser()
   cli_h1("Finished")
 
   data_files = review_files(dirname(files))
@@ -122,24 +113,12 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
   if(verbose>0) cli_h1("Parsing")
 
   files = names(ref_list) %>% set_names()
-
-  # digest_list = map(files, digest, file=TRUE)
-
   cache_list = files %>% map(~{
     filename = basename(.x) %>% str_replace("\\.R|r$", ".rds")
     path = file.path(cache_dir, filename)
     if(!file.exists(path)) return(NULL)
     readRDS(path)
   })
-
-  # cache_list %>%
-  #   imap(~{
-  #     dig = digest::digest(.y, file=TRUE)
-  #     identical(dig, .x$dig)
-  #   })
-  #TODO mettre le cache dans un seul fichier .rds à lire en une seule fois.
-  #     (mais du coup changer `cache_dir` en `cache_file`)
-  #TODO on pourrait même faire un cache au niveau du digest de la ref elle-même!
 
   import_list = files %>%
     map(~{

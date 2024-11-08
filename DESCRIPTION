@@ -26,7 +26,6 @@ Imports:
     purrr,
     readr,
     rlang,
-    rstudioapi,
     shiny,
     stringr,
     tibble,
@@ -37,6 +36,7 @@ Suggests:
     callr,
     covr,
     knitr,
+    rstudioapi,
     testthat (>= 3.0.0),
     tidyverse
 Encoding: UTF-8
