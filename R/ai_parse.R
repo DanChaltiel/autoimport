@@ -11,7 +11,7 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
                             deps, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
-  cache = if(file.exists(cache_path)) readRDS(cache_path) else list()
+  cache = if(file.exists(cache_path) && !dir.exists(cache_path)) readRDS(cache_path) else list()
   read_from_cache = "read" %in% use_cache && !is.null(cache)
 
   import_list = ref_list %>%
