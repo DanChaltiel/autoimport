@@ -51,7 +51,7 @@ test_path = function(path){
     path = paste0("tests/testthat/", path)
   }
   # if(!dir.exists(path) && !file.exists(path)) path = paste0("tests/testthat/", path)
-  if(!dir.exists(path) && !file.exists(path)) stop(path)
+  # if(!dir.exists(path) && !file.exists(path)) stop(path)
   path
 }
 

@@ -1,5 +1,5 @@
 
-test_that("autoimport", {
+test_that("autoimport works", {
   test_autoimport(files=test_path("source/sample_funs.R")) %>%
     suppressMessages()
 
