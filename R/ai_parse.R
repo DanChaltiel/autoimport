@@ -9,41 +9,32 @@
 #' @noRd
 #' @keywords internal
 autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
-                            deps, ask, importlist_path, verbose) {
+                            deps, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
 
-  files = names(ref_list) %>% set_names()
-  cache_list = files %>% map(~{
-    filename = basename(.x) %>% str_replace("\\.R|r$", ".rds")
-    path = file.path(cache_dir, filename)
-    if(!file.exists(path)) return(NULL)
-    readRDS(path)
-  })
+  import_list = ref_list %>%
+    imap(function(ref, file) {
+      cache_name = basename(file) %>% str_replace("\\.R|r$", ".rds")
+      cache_path = file.path(cache_dir, cache_name)
+      cache = if(file.exists(cache_path)) readRDS(cache_path) else NULL
+      file_hash = digest(.x, file=TRUE)
+      if(verbose>1) cli_inform(c(">"="File {.file {file}}"))
 
-  import_list = files %>%
-    map(~{
-      ref = ref_list[[.x]]
-      cache = cache_list[[.x]]
-      # dig = digest_list[[.x]]
-      dig = digest(.x, file=TRUE)
-      if(verbose>1) cli_inform(c(">"="File {.file {.x}}"))
-
-      filename = basename(.x) %>% str_replace("\\.R|r$", ".rds")
-      cache_path = file.path(cache_dir, filename)
-
-      if(isTRUE(use_cache) && !is.null(cache) && dig==cache$dig){
+      if(isTRUE(use_cache) && !is.null(cache) && file_hash==cache$file_hash){
         rtn = cache$cache
         verb = "Reading"
       } else {
-        rtn = list_importFrom(ref, pkg_name=pkg_name, ns=ns, deps=deps, verbose=verbose>1) #long call
+        #long call
+        rtn = list_importFrom(ref, pkg_name=pkg_name, ns=ns, deps=deps, verbose=verbose>1)
         verb = "Updating"
-        saveRDS(list(dig=dig, cache=rtn), cache_path)
+        saveRDS(list(file_hash=file_hash, cache=rtn), cache_path)
       }
       if(verbose>1){
         s = rtn %>% map_dbl(nrow) %>% sum()
         cli_inform(c("!"="{verb} cache",
-                     "i"="Found {s} function{?s} to import in {length(rtn)} function{?s} or code chunk{?s}."))
+                     "i"="Found {s} function{?s} to import in {length(rtn)}
+                     function{?s} or code chunk{?s}."))
       }
 
       rtn
@@ -53,9 +44,7 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
   if(verbose>0) cli_inform(c(v="Found a total of {n_imports} potential function{?s} to import"))
   warn_not_found(import_list, verbose)
 
-  user_choice = get_user_choice(import_list, ask=ask, ns=ns, importlist_path=importlist_path)
-
-  lst(import_list, user_choice)
+  import_list
 }
 
 
@@ -106,7 +95,7 @@ parse_function = function(ref, pkg_name, ns, deps){
     imap(~{
       rtn = list(.x$pkg)
       action = "nothing"
-      # if(.y=="mutate") browser()
+      # if(.y=="ggplot") browser()
 
       if(nrow(.x)==1) {
         if(isTRUE(.x$fun_is_inner)) {

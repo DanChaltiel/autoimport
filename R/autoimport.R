@@ -49,9 +49,12 @@ autoimport = function(root=".",
   ai_read = autoimport_read(lines_list, verbose)
 
   ai_parse = autoimport_parse(ai_read$ref_list, cache_dir, use_cache, pkg_name,
-                              ns, deps, ask, importlist_path, verbose)
-  ai_write = autoimport_write(ai_parse$import_list, ai_read$ref_list, lines_list,
-                              ai_parse$user_choice, ignore_package,
+                              ns, deps, verbose)
+
+  ai_ask = autoimport_ask(ai_parse, ask, ns, importlist_path)
+
+  ai_write = autoimport_write(ai_parse, ai_read$ref_list, lines_list,
+                              ai_ask, ignore_package,
                               pkg_name, target_dir, verbose)
 
   cli_h1("Finished")

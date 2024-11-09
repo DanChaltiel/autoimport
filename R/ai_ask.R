@@ -1,10 +1,11 @@
 
+
 #' @importFrom cli cli_h1 cli_inform
 #' @importFrom dplyr distinct filter left_join mutate select
 #' @importFrom purrr list_rbind map map2_chr
 #' @importFrom tibble deframe
 #' @noRd
-get_user_choice = function(import_list, ask, ns, importlist_path){
+autoimport_ask = function(import_list, ask, ns, importlist_path){
   if(!is.data.frame(import_list[[1]])){
     import_list = import_list %>% map(list_rbind)
   }
