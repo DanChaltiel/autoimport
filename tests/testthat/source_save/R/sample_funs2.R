@@ -7,7 +7,7 @@ f2 = function(){
   1
 }
 f2 = function(){
-  1
+  ggplot()
 }
 
 

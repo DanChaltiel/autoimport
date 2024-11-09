@@ -8,3 +8,7 @@ f = function(){
   abort()
 }
 
+
+f = function(){
+  abort()
+}

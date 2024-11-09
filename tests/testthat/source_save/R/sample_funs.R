@@ -27,9 +27,9 @@ f1 = function(x){
   x = dplyr::arrange(x, TRUE)
   x = knitr::asis_output(x, TRUE)
   #base function, should not be imported
-  x = mean(x)
+  x = sum(x)
+  x = date(x) #not from lubridate (IMPORTLIST)
   #other functions, should be imported
-  x = date(x) #from lubridate, not base
   x = pivot_longer(x, a=0)
   x = set_names(map(x), TRUE)
   x = div(x, TRUE) #from shiny, not html

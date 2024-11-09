@@ -47,7 +47,10 @@ digest::sha1
 # Directories ---------------------------------------------------------------------------------
 
 test_path = function(path){
-  if(!dir.exists(path) && !file.exists(path)) path = paste0("tests/testthat/", path)
+  if(!str_detect(getwd(), "testthat")){
+    path = paste0("tests/testthat/", path)
+  }
+  # if(!dir.exists(path) && !file.exists(path)) path = paste0("tests/testthat/", path)
   if(!dir.exists(path) && !file.exists(path)) stop(path)
   path
 }
@@ -96,14 +99,17 @@ poor_diff = function(file){
   lst(common, adds, removals)
 }
 
-
 expect_imported = function(output, pkg, fun){
   needle = glue("^#' ?@importFrom.*{pkg}.*{fun}")
-  msg = cli::format_inline("Function `{fun}` not imported from `{pkg}`.")
+  a = str_extract(output, glue("^#' ?@importFrom(.*){fun}"), group=1) %>%
+    na.omit() %>% stringr::str_trim()
+  b = if(length(a)>0) (", but from {{{a}}}.") else "."
+  msg = cli::format_inline("Function {.fn {fun}} not imported from {{{pkg}}}", b)
   expect(any(str_detect(output, needle)),
          failure_message=msg)
   invisible(output)
 }
+
 expect_not_imported = function(output, pkg, fun){
   needle = glue("^#' ?@importFrom.*{pkg}.*{fun}")
   x = str_detect(output, needle)
@@ -118,7 +124,7 @@ expect_not_imported = function(output, pkg, fun){
   invisible(faulty)
 }
 
-test_autoimport = function(files, bad_ns=FALSE){
+test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE){
   #reset file paths
   dir_source_save = test_path("source_save")
   dir_source = test_path("source")
@@ -127,12 +133,14 @@ test_autoimport = function(files, bad_ns=FALSE){
   bad_namespace_file = test_path("inst/BAD_NAMESPACE")
   description_file = test_path("inst/DESCRIPTION")
   importlist_file = test_path("inst/IMPORTLIST")
+  cache_path = test_path("inst/autoimport_cache.rds")
   ns = if(bad_ns) bad_namespace_file else namespace_file
 
   #set options
   withr::local_options(
     autoimport_target_dir = dir_output,
     autoimport_importlist = importlist_file,
+    autoimport_cache_path = cache_path,
     rlang_backtrace_on_error = "full",
     autoimport_testing_ask_save_importlist = 2 #2=No, 1=Yes
   )
@@ -150,7 +158,7 @@ test_autoimport = function(files, bad_ns=FALSE){
   autoimport(files=files,
              pkg_name="autoimport_test",
              ignore_package=TRUE,
-             use_cache=FALSE,
+             use_cache=use_cache,
              namespace_file=ns,
              description_file=description_file,
              ask=FALSE, verbose=2)

@@ -1,5 +1,5 @@
 attr = base
 date = base
-xxxx = unkwown_package
+xxxx = unknown_package
 filter = dplyr
 set_names = purrr
