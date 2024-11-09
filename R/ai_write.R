@@ -88,8 +88,8 @@ get_inserts = function(.x, user_choice, exclude){
 
   .x %>%
     mutate(
-      tmp = user_choice[fun] %>% modify_if(is.null, ~"error"),
-      pkg = if_else(lengths(pkg)>1, tmp, pkg) %>% unlist()) %>%
+      tmp = map_chr(fun, ~user_choice[[.x]] %0% NA),
+      pkg = if_else(lengths(pkg)>1, tmp, pkg_str) %>% unlist()) %>%
     group_by(pkg) %>%
     summarise(label = paste(cur_group(), paste(sort(fun), collapse=" "))) %>%
     filter(!is.na(pkg) & !pkg %in% exclude) %>%

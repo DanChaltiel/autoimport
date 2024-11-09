@@ -290,3 +290,11 @@ parse_namespace = function(file){
   }
   rtn
 }
+
+
+#' @source vctrs::`%0%`
+#' @noRd
+#' @keywords internal
+`%0%` = function (x, y) {
+  if(length(x)==0L) y else x
+}

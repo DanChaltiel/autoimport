@@ -7,10 +7,10 @@
 #' @param pkg_name name of the package (character)
 #' @param namespace_file path to the NAMESPACE file
 #' @param description_file path to the DESCRIPTION file
-#' @param use_cache use the cache system
+#' @param use_cache use the cache system. Can only be "read" or "write".
 #' @param ask whether to ask the user when multiple choices arise
 #' @param ignore_package ignore files ending with `-package.R`
-#' @param verbose the higher, the more output printed
+#' @param verbose the higher, the more output printed. Slows the process a bit.
 #'
 #' @return Nothing, used for side effects.
 #' @export
@@ -28,9 +28,12 @@ autoimport = function(root=".",
   target_dir = get_target_dir()
   cache_dir = get_target_dir("cache")
   ns = parse_namespace(namespace_file)
-  importlist_path = file.path(root, "inst/IMPORTLIST")
+  importlist_path = getOption("autoimport_importlist", file.path(root, "inst/IMPORTLIST"))
+  cache_path = getOption("autoimport_cache_path", file.path(root, "inst/autoimport_cache.rds"))
+
   deps = desc::desc(file=description_file)$get_deps()
   main_caller$env = current_env()
+  if(isTRUE(use_cache)) use_cache = c("read", "write")
 
   cli_h1("Init")
   ns_loading = deps$package %>% setdiff("R")
@@ -48,11 +51,14 @@ autoimport = function(root=".",
 
   ai_read = autoimport_read(lines_list, verbose)
 
-  ai_parse = autoimport_parse(ai_read$ref_list, cache_dir, use_cache, pkg_name,
+  ai_parse = autoimport_parse(ai_read$ref_list, cache_path, use_cache, pkg_name,
                               ns, deps, verbose)
 
   ai_ask = autoimport_ask(ai_parse, ask, ns, importlist_path)
 
+  #TODO: rename objects
+  #TODO: merge ai_parse & ai_ask into one dataframe with 1 row per function
+  #TODO: merge ai_parse, ai_read$ref_list, lines_list into one dataframe
   ai_write = autoimport_write(ai_parse, ai_read$ref_list, lines_list,
                               ai_ask, ignore_package,
                               pkg_name, target_dir, verbose)

@@ -1,44 +1,61 @@
 
 
 #' @importFrom cli cli_h1 cli_inform
-#' @importFrom digest digest
 #' @importFrom purrr map map_dbl map_depth
-#' @importFrom rlang set_names
+#' @importFrom rlang hash hash_file set_names
 #' @importFrom stringr str_replace
 #' @importFrom tibble lst
 #' @noRd
 #' @keywords internal
-autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
+autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
                             deps, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
+  cache = if(file.exists(cache_path)) readRDS(cache_path) else list()
+  read_from_cache = "read" %in% use_cache && !is.null(cache)
 
   import_list = ref_list %>%
-    imap(function(ref, file) {
-      cache_name = basename(file) %>% str_replace("\\.R|r$", ".rds")
-      cache_path = file.path(cache_dir, cache_name)
-      cache = if(file.exists(cache_path)) readRDS(cache_path) else NULL
-      file_hash = digest(.x, file=TRUE)
-      if(verbose>1) cli_inform(c(">"="File {.file {file}}"))
-
-      if(isTRUE(use_cache) && !is.null(cache) && file_hash==cache$file_hash){
-        rtn = cache$cache
-        verb = "Reading"
+    imap(function(refs, filename) {
+      file_hash = hash_file(filename)
+      if(verbose>1) cli_inform(c(">"="File {.file {filename}}"))
+      cache_file = cache[[filename]]
+      cache_file_hash = if(is.null(cache_file[["..file_hash"]])) "" else cache_file[["..file_hash"]]
+      if(isTRUE(read_from_cache) && file_hash==cache_file_hash){
+        rtn_file = cache[[filename]][["..imports"]]
+        verb = "Reading from cache"
       } else {
-        #long call
-        rtn = list_importFrom(ref, pkg_name=pkg_name, ns=ns, deps=deps, verbose=verbose>1)
-        verb = "Updating"
-        saveRDS(list(file_hash=file_hash, cache=rtn), cache_path)
+        rtn_file = refs %>%
+          imap(function(ref, fun_name){
+            cache_ref = cache_file[[fun_name]]
+            cache_ref_hash = cache_ref[["ref_hash"]]
+            if(length(cache_ref_hash)==0) cache_ref_hash=""
+            ref_hash = hash(ref)
+            if(isTRUE(read_from_cache) && ref_hash==cache_ref_hash) {
+              rtn_ref = cache_ref[["imports"]]
+            } else {
+              rtn_ref = parse_function(ref, fun_name, pkg_name=pkg_name,
+                                       ns=ns, deps=deps, verbose=verbose)
+              cache[[filename]][[fun_name]][["imports"]]  <<- rtn_ref
+              cache[[filename]][[fun_name]][["ref_hash"]] <<- ref_hash
+            }
+            rtn_ref
+          })
+        verb = "Reading from file"
+        cache[[filename]][["..file_hash"]] <<- file_hash
+        cache[[filename]][["..imports"]] <<- rtn_file
       }
       if(verbose>1){
-        s = rtn %>% map_dbl(nrow) %>% sum()
-        cli_inform(c("!"="{verb} cache",
-                     "i"="Found {s} function{?s} to import in {length(rtn)}
+        s = rtn_file %>% map_dbl(nrow) %>% sum()
+        cli_inform(c("!"=verb,
+                     "i"="Found {s} function{?s} to import in {length(rtn_file)}
                      function{?s} or code chunk{?s}."))
       }
-
-      rtn
+      rtn_file
     })
+
+  if("write" %in% use_cache){
+    saveRDS(cache, file=cache_path)
+  }
 
   n_imports = import_list %>% map_depth(2, nrow) %>% unlist() %>% sum()
   if(verbose>0) cli_inform(c(v="Found a total of {n_imports} potential function{?s} to import"))
@@ -51,28 +68,6 @@ autoimport_parse = function(ref_list, cache_dir, use_cache, pkg_name, ns,
 # Utils ---------------------------------------------------------------------------------------
 
 
-#' used in [autoimport_parse()], calls [(parse_function)]
-#' @importFrom cli cli_inform
-#' @importFrom purrr imap
-#' @importFrom stringr str_starts
-#' @noRd
-#' @keywords internal
-list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
-  rslt = refs %>%
-    imap(~{
-      if(verbose){
-        if(str_starts(.y, "unnamed_")){
-          cli_inform(c(i="Parsing code block {.code {.y}}"))
-        } else {
-          cli_inform(c(i="Parsing function {.fun {.y}}"))
-        }
-      }
-      parse_function(.x, pkg_name=pkg_name, ns=ns, deps=deps)
-    })
-  rslt
-}
-
-
 #' used in [list_importFrom()], calls [parse_ref()]
 #' @importFrom cli cli_abort
 #' @importFrom dplyr arrange filter mutate pull
@@ -81,14 +76,20 @@ list_importFrom = function(refs, pkg_name, ns, deps, verbose=FALSE){
 #' @importFrom tibble tibble
 #' @noRd
 #' @keywords internal
-parse_function = function(ref, pkg_name, ns, deps){
+parse_function = function(ref, fun_name, pkg_name, ns, deps, verbose){
   empty_ref = structure(list(fun = character(0), pkg = list(), pkg_str = character(0),
                              action = character(0), reason = character(0), pkgs = list()),
                         row.names = integer(0), class = "data.frame")
   loc = parse_ref(ref, pkg_name, ns, deps)
+  if(verbose){
+    if(str_starts(fun_name, "unnamed_")){
+      cli_inform(c(i="Parsing code block {.code {fun_name}}"))
+    } else {
+      cli_inform(c(i="Parsing function {.fun {fun_name}}"))
+    }
+  }
   if(is.null(loc)) return(empty_ref)
   if(nrow(loc)==0) return(loc)
-
 
   rslt = loc %>%
     split(.$fun) %>%
