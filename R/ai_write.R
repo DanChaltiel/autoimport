@@ -14,20 +14,39 @@ autoimport_write = function(import_list, ref_list, lines_list, user_choice, igno
   stopifnot(names(import_list)==names(lines_list))
   stopifnot(names(ref_list)==names(lines_list))
 
-  diffs = pmap(
-    list(lines_list, ref_list, import_list, names(import_list)),
-    function(lines, comments_refs, imp_list, file){
-      if(str_ends(file, "-package.[Rr]") && ignore_package){
-        if(verbose>0) cli_inform(c(v="Ignoring {.file {file}}. Use {.code ignore_package=FALSE} to override."))
+  #   TODO faire une interface avec une simple dataframe
+  #merge import_list & user_choice as DF
+  a = import_list %>%
+    map(bind_rows, .id="source_fun") %>%
+    bind_rows(.id="file") %>%
+    as_tibble() %>%
+    mutate(
+      # pkg = ifelse(lengths(pkg)>1, user_choice[[fun]], pkg)
+      pkg = map2_chr(pkg, fun, ~ifelse(length(.x)>1, user_choice[[.y]], .x))
+    )
+
+  diffs =
+    a %>%
+    split(list(.$file)) %>%
+    map(~{
+      cur_file = unique(.x$file)
+      stopifnot(length(cur_file)==1)
+      lines = lines_list[[cur_file]]
+      comments_refs = ref_list[[cur_file]]
+
+      if(str_ends(cur_file, "-package.[Rr]") && ignore_package){
+        if(verbose>0) cli_inform(c(v="Ignoring {.file {cur_file}}.
+                                      Use {.code ignore_package=FALSE} to override."))
         return(NULL)
       }
       if(length(lines)==0){
-        if(verbose>0) cli_inform(c(">"="Nothing done in {.file {file}} (file is empty)"))
+        if(verbose>0) cli_inform(c(">"="Nothing done in {.file {cur_file}} (file is empty)"))
         return(NULL)
       }
 
-      inserts = imp_list %>% map(~get_inserts(.x, user_choice, exclude=c("base", "inner", pkg_name)))
-      cli_inform(c(i="{length(unlist(inserts))} inserts in {.file {file}}"))
+      inserts = get_inserts(.x, exclude=c("base", "inner", pkg_name))
+
+      cli_inform(c(i="{length(unlist(inserts))} inserts in {.file {cur_file}}"))
 
       lines2 = comments_refs %>%
         imap(~get_lines2(.x, inserts[[.y]])) %>%
@@ -35,20 +54,21 @@ autoimport_write = function(import_list, ref_list, lines_list, user_choice, igno
         add_trailing_comment_lines(lines)
 
       if(identical(lines, lines2)){
-        if(verbose>0) cli_inform(c(">"="Nothing done in {.file {file}} (all is already OK)"))
+        if(verbose>0) cli_inform(c(">"="Nothing done in {.file {cur_file}} (all is already OK)"))
         return(NULL)
       }
 
       n_new = setdiff(lines2, lines) %>% length()
       n_old = setdiff(lines, lines2) %>% length()
-      out = file.path(target_dir, basename(file))
+      out = file.path(target_dir, basename(cur_file))
 
       write_utf8(out, lines2)
 
-      if(verbose>0) cli_inform(c(v="Added {n_new} and removed {n_old} line{?s} from {.file {file}}."))
-      tibble(file, out)
-    }
-  )
+      if(verbose>0) cli_inform(c(v="Added {n_new} and removed {n_old} line{?s}
+                                    from {.file {cur_file}}."))
+      tibble(file=cur_file, out)
+
+    })
 
   diffs
 }
@@ -82,18 +102,15 @@ add_trailing_comment_lines = function(lines2, lines){
 #' @importFrom purrr modify_if
 #' @noRd
 #' @keywords internal
-get_inserts = function(.x, user_choice, exclude){
-  if(is.null(.x)) return(NULL)
-  if(nrow(.x)==0) return(NULL)
-
+get_inserts = function(.x, exclude){
   .x %>%
-    mutate(
-      tmp = map_chr(fun, ~user_choice[[.x]] %0% NA),
-      pkg = if_else(lengths(pkg)>1, tmp, pkg_str) %>% unlist()) %>%
-    group_by(pkg) %>%
-    summarise(label = paste(cur_group(), paste(sort(fun), collapse=" "))) %>%
     filter(!is.na(pkg) & !pkg %in% exclude) %>%
-    pull(label)
+    mutate(label = paste(pkg, paste(sort(unique(fun)), collapse=" ")),
+           .by=c(pkg, source_fun)) %>%
+    distinct(source_fun, label) %>%
+    arrange(source_fun, label) %>%
+    split(.$source_fun) %>%
+    map(~.x$label)
 }
 
 #' @importFrom glue glue

@@ -26,7 +26,6 @@ autoimport = function(root=".",
                       use_cache=TRUE, ask=TRUE, ignore_package=TRUE,
                       verbose=2){
   target_dir = get_target_dir()
-  cache_dir = get_target_dir("cache")
   ns = parse_namespace(namespace_file)
   importlist_path = getOption("autoimport_importlist", file.path(root, "inst/IMPORTLIST"))
   cache_path = getOption("autoimport_cache_path", file.path(root, "inst/autoimport_cache.rds"))
@@ -49,17 +48,18 @@ autoimport = function(root=".",
   files = set_names(files)
   lines_list = map(files, readr::read_lines)
 
-  ai_read = autoimport_read(lines_list, verbose)
+  ref_list = autoimport_read(lines_list, verbose)
 
-  ai_parse = autoimport_parse(ai_read$ref_list, cache_path, use_cache, pkg_name,
+  ai_parse = autoimport_parse(ref_list, cache_path, use_cache, pkg_name,
                               ns, deps, verbose)
 
   ai_ask = autoimport_ask(ai_parse, ask, ns, importlist_path)
 
+  # browser()
   #TODO: rename objects
   #TODO: merge ai_parse & ai_ask into one dataframe with 1 row per function
   #TODO: merge ai_parse, ai_read$ref_list, lines_list into one dataframe
-  ai_write = autoimport_write(ai_parse, ai_read$ref_list, lines_list,
+  ai_write = autoimport_write(ai_parse, ref_list, lines_list,
                               ai_ask, ignore_package,
                               pkg_name, target_dir, verbose)
 

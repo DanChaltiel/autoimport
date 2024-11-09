@@ -1,4 +1,7 @@
 
+#' Read a list of lines into a list of `srcref` (source references)
+#' See [base::srcfile()] for all methods and functions
+#'
 #' @importFrom cli cli_h1 cli_inform
 #' @importFrom purrr imap
 #' @importFrom tibble lst
@@ -22,7 +25,7 @@ autoimport_read = function(lines_list, verbose) {
                              in {length(lines_list)} files ({tot_lines} lines)."))
 
   warn_duplicated(ref_list, verbose)
-  lst(ref_list)
+  ref_list
 }
 
 
