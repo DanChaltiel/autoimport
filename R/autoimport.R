@@ -50,30 +50,27 @@ autoimport = function(root=".",
 
   ref_list = autoimport_read(lines_list, verbose)
 
-  ai_parse = autoimport_parse(ref_list, cache_path, use_cache, pkg_name,
-                              ns, deps, verbose)
+  data_imports = autoimport_parse(ref_list, cache_path, use_cache, pkg_name,
+                                  ns, deps, verbose)
 
   ai_ask = autoimport_ask(ai_parse, ask, ns, importlist_path)
+  data_imports = autoimport_ask(data_imports, ask, ns, importlist_path)
 
   # browser()
-  #TODO: rename objects
-  #TODO: merge ai_parse & ai_ask into one dataframe with 1 row per function
-  #TODO: merge ai_parse, ai_read$ref_list, lines_list into one dataframe
   ai_write = autoimport_write(ai_parse, ref_list, lines_list,
                               ai_ask, ignore_package,
-                              pkg_name, target_dir, verbose)
+  ai_write = autoimport_write(data_imports, ref_list, lines_list,
+                              ignore_package, pkg_name, target_dir, verbose)
 
   cli_h1("Finished")
 
   data_files = review_files(dirname(files))
   if(!any(data_files$changed)){
     cli_inform(c(v="No changes to review."))
-    rtn = FALSE
   } else {
     cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
                  i='{.run autoimport::import_review("{dirname(files)[1]}")}'))
-    rtn = TRUE
   }
 
-  invisible(rtn)
+  invisible(data_imports)
 }

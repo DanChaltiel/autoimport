@@ -1,32 +1,27 @@
 
-
+#' Take a dataframe from `autoimport_ask()`, a reflist from `autoimport_read()`, and
+#' a list of lines from `readr::read_lines()`, and compute for each file what importFrom
+#' lines should be removed or inserted.
+#' Writes the correct lines in `target_dir` so they can be reviewed in `import_review()`.
+#' Returns nothing of use.
+#'
 #' @importFrom cli cli_h1 cli_inform
 #' @importFrom purrr imap map pmap
 #' @importFrom stringr str_ends
 #' @importFrom tibble tibble
 #' @noRd
 #' @keywords internal
-autoimport_write = function(import_list, ref_list, lines_list, user_choice, ignore_package,
+autoimport_write = function(data_imports, ref_list, lines_list, ignore_package,
                             pkg_name, target_dir, verbose) {
 
   if(verbose>0) cli_h1("Writing")
+  if(verbose>1) cli_inform(c(">"="Temporarily writing to {.path {target_dir}}."))
 
-  stopifnot(names(import_list)==names(lines_list))
   stopifnot(names(ref_list)==names(lines_list))
 
-  #   TODO faire une interface avec une simple dataframe
-  #merge import_list & user_choice as DF
-  a = import_list %>%
-    map(bind_rows, .id="source_fun") %>%
-    bind_rows(.id="file") %>%
-    as_tibble() %>%
-    mutate(
-      # pkg = ifelse(lengths(pkg)>1, user_choice[[fun]], pkg)
-      pkg = map2_chr(pkg, fun, ~ifelse(length(.x)>1, user_choice[[.y]], .x))
-    )
-
-  diffs =
-    a %>%
+  #list of paths input/output
+  #not used, could be a walk()
+  paths = data_imports %>%
     split(list(.$file)) %>%
     map(~{
       cur_file = unique(.x$file)
@@ -70,7 +65,7 @@ autoimport_write = function(import_list, ref_list, lines_list, user_choice, igno
 
     })
 
-  diffs
+  paths
 }
 
 

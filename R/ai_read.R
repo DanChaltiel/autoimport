@@ -1,5 +1,6 @@
 
-#' Read a list of lines into a list of `srcref` (source references)
+#' Read a list of lines from `readr::read_lines()` (one per file)
+#' Returns a list of source references (`srcref`, one per function)
 #' See [base::srcfile()] for all methods and functions
 #'
 #' @importFrom cli cli_h1 cli_inform

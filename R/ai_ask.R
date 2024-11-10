@@ -1,18 +1,19 @@
 
 
+#' Take a dataframe from `autoimport_parse()`, finds the functions for
+#' which the source package is uncertain, and asks the user interactively
+#' about them.
+#' Returns the input dataframe, with column `pkg` being a single-value character
+#'
 #' @importFrom cli cli_h1 cli_inform
 #' @importFrom dplyr distinct filter left_join mutate select
 #' @importFrom purrr list_rbind map map2_chr
 #' @importFrom tibble deframe
 #' @noRd
-autoimport_ask = function(import_list, ask, ns, importlist_path){
-  if(!is.data.frame(import_list[[1]])){
-    import_list = import_list %>% map(list_rbind)
-  }
-
+autoimport_ask = function(data_imports, ask, ns, importlist_path){
   pref_importlist = get_importlist(importlist_path)
-  unsure_funs = import_list %>%
-    list_rbind(names_to="parent_fun") %>%
+
+  unsure_funs = data_imports %>%
     filter(action=="ask_user") %>%
     distinct(fun, pkg) %>%
     left_join(pref_importlist, by="fun")
@@ -51,8 +52,11 @@ autoimport_ask = function(import_list, ask, ns, importlist_path){
 
   ask_update_importlist(user_asked, importlist_path)
 
-  rtn = c(rtn, deframe(user_asked))
-  rtn
+  user_choice = c(rtn, deframe(user_asked))
+  data_imports %>%
+    mutate(
+      pkg = map2_chr(pkg, fun, ~ifelse(length(.x)>1, user_choice[[.y]], .x))
+    )
 }
 
 #' @importFrom glue glue

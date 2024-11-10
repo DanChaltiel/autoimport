@@ -1,5 +1,11 @@
 
 
+#' Take a list of source references (`srcref`, one per function) and parse them:
+#'  - what functions are called inside the function
+#'  - what package they are most likely originated from
+#' Returns a dataframe with columns: file, source_fun, fun, pkg, action
+#' Uses a rds cache system at file and ref level
+#'
 #' @importFrom cli cli_h1 cli_inform
 #' @importFrom purrr map map_dbl map_depth
 #' @importFrom rlang hash hash_file set_names
@@ -61,7 +67,10 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
   if(verbose>0) cli_inform(c(v="Found a total of {n_imports} potential function{?s} to import"))
   warn_not_found(import_list, verbose)
 
-  import_list
+  import_list %>%
+    map(~list_rbind(.x, names_to="source_fun")) %>%
+    list_rbind(names_to="file") %>%
+    as_tibble()
 }
 
 
