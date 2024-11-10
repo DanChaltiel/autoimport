@@ -10,6 +10,7 @@
 #' @export
 #'
 #' @importFrom cli cli_inform
+#' @importFrom dplyr pull
 #' @importFrom tibble deframe
 #' @importFrom utils modifyList
 update_importlist = function(imports, path=NULL){
@@ -20,7 +21,7 @@ update_importlist = function(imports, path=NULL){
     file.create(path)
   }
   old_imports = get_importlist(path) %>% deframe() %>% as.list()
-  new_imports = imports %>% deframe() %>% as.list()
+  new_imports = imports %>% pull(pref_pkg, name=fun) %>% as.list()
   if(length(new_imports)==0){
     cli_inform(c(i="No change needed to {.file {path}}"))
     return(FALSE)

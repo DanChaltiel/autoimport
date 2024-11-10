@@ -17,14 +17,19 @@ autoimport_write = function(data_imports, ref_list, lines_list, ignore_package,
   if(verbose>0) cli_h1("Writing")
   if(verbose>1) cli_inform(c(">"="Temporarily writing to {.path {target_dir}}."))
 
+  stopifnot(is.data.frame(data_imports))
+  stopifnot(is.character(data_imports$pkg))
   stopifnot(names(ref_list)==names(lines_list))
 
+  # data_imports %>% filter(fun=="writeLines")
+  # .x %>% filter(fun=="writeLines")
   #list of paths input/output
   #not used, could be a walk()
   paths = data_imports %>%
     split(list(.$file)) %>%
     map(~{
       cur_file = unique(.x$file)
+      target_file = file.path(target_dir, basename(cur_file))
       stopifnot(length(cur_file)==1)
       lines = lines_list[[cur_file]]
       comments_refs = ref_list[[cur_file]]
@@ -40,7 +45,6 @@ autoimport_write = function(data_imports, ref_list, lines_list, ignore_package,
       }
 
       inserts = get_inserts(.x, exclude=c("base", "inner", pkg_name))
-
       cli_inform(c(i="{length(unlist(inserts))} inserts in {.file {cur_file}}"))
 
       lines2 = comments_refs %>%
@@ -50,18 +54,18 @@ autoimport_write = function(data_imports, ref_list, lines_list, ignore_package,
 
       if(identical(lines, lines2)){
         if(verbose>0) cli_inform(c(">"="Nothing done in {.file {cur_file}} (all is already OK)"))
+        unlink(target_file)
         return(NULL)
       }
 
       n_new = setdiff(lines2, lines) %>% length()
       n_old = setdiff(lines, lines2) %>% length()
-      out = file.path(target_dir, basename(cur_file))
 
-      write_utf8(out, lines2)
+      write_utf8(target_file, lines2)
 
       if(verbose>0) cli_inform(c(v="Added {n_new} and removed {n_old} line{?s}
                                     from {.file {cur_file}}."))
-      tibble(file=cur_file, out)
+      tibble(file=cur_file, target_file)
 
     })
 
@@ -93,8 +97,8 @@ add_trailing_comment_lines = function(lines2, lines){
 }
 
 
-#' @importFrom dplyr cur_group filter group_by if_else mutate pull summarise
-#' @importFrom purrr modify_if
+#' @importFrom dplyr arrange distinct filter mutate
+#' @importFrom purrr map
 #' @noRd
 #' @keywords internal
 get_inserts = function(.x, exclude){

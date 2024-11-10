@@ -12,50 +12,52 @@
 #' @noRd
 autoimport_ask = function(data_imports, ask, ns, importlist_path){
   pref_importlist = get_importlist(importlist_path)
-
   unsure_funs = data_imports %>%
     filter(action=="ask_user") %>%
     distinct(fun, pkg) %>%
     left_join(pref_importlist, by="fun")
 
-  if(nrow(unsure_funs)==0) return(list())
+  if(nrow(unsure_funs)==0) return(data_imports)
 
   cli_h1("Attributing")
-  rtn = list()
+  # rtn = list()
   defined_funs = unsure_funs %>%
     filter(!is.na(pref_pkg))
-  if(nrow(defined_funs)>0){
-    cli_inform(c(i="Automatically attributing {nrow(defined_funs)} functions imports
-                    from {.file {importlist_path}}"))
-    rtn = defined_funs %>% select(fun, package=pref_pkg) %>%
-      deframe() %>%
-      as.list()
-  }
-
   undefined_funs = unsure_funs %>%
     filter(is.na(pref_pkg))
-  if(nrow(undefined_funs)==0) return(rtn)
 
-  if(ask){
-    selected = user_input_pkg_choose(undefined_funs)
-  } else {
-    cli_inform(c(i="Automatically attributing {nrow(undefined_funs)} functions imports,
-                    as {.arg ask==FALSE}"))
-    selected = 2
+  if(nrow(defined_funs)>0){
+    cli_inform(c(i="Automatically attributing {nrow(defined_funs)} function import{?s}
+                    as predefined in {.file {importlist_path}}"))
   }
-  if(selected==0 || selected==3) stop("abort mission")
 
-  user_asked = undefined_funs %>%
-    mutate(package = map2_chr(fun, pkg,
-                              ~user_input_1package(.x, .y, ns, select_first=selected==2))) %>%
-    select(fun, package)
+  if(nrow(undefined_funs)>0){
+    if(ask){
+      selected = user_input_pkg_choose(undefined_funs)
+    } else {
+      cli_inform(c(i="Automatically attributing {nrow(undefined_funs)} non-predefined
+                      function import{?s}, as {.arg ask==FALSE}"))
+      selected = 2
+    }
+    if(selected==0 || selected==3) stop("Abort mission")
 
-  ask_update_importlist(user_asked, importlist_path)
+    unsure_funs = unsure_funs %>%
+      rowwise() %>%
+      mutate(
+        defined_in_importlist = !is.na(pref_pkg),
+        pref_pkg = ifelse(defined_in_importlist, pref_pkg,
+                          user_input_1package(fun, pkg, ns, select_first=selected==2))
+      ) %>%
+      ungroup()
 
-  user_choice = c(rtn, deframe(user_asked))
+    ask_update_importlist(unsure_funs, importlist_path)
+  }
+
+  fun_replace_list = unsure_funs %>% pull(pref_pkg, name=fun) %>% as.list()
+
   data_imports %>%
     mutate(
-      pkg = map2_chr(pkg, fun, ~ifelse(length(.x)>1, user_choice[[.y]], .x))
+      pkg = map2_chr(pkg, fun, ~ifelse(length(.x)>1, fun_replace_list[[.y]], .x))
     )
 }
 
@@ -92,13 +94,15 @@ user_input_1package = function(fun, pkg, ns, select_first){
 #' @importFrom glue glue
 #' @importFrom utils menu
 ask_update_importlist = function(user_asked, path="inst/IMPORTLIST"){
+  user_asked = user_asked %>% filter(!defined_in_importlist)
   resp = getOption("autoimport_testing_ask_save_importlist")
   if(!is.null(resp)){
     stopifnot(resp==1 || resp==2)
     x = if(resp==1) "" else "not "
     cli_inform(c(i="TESTING: {x}saving choices in {.file {path}}"))
   } else {
-    title = glue("\n\nDo you want to save your choices about these {nrow(user_asked)} functions in `{path}`?")
+    s = if(nrow(user_asked)>1) "s" else ""
+    title = glue("\n\nDo you want to save your choices about these {nrow(user_asked)} function{s} in `{path}`?")
     choices = c("Yes", "No")
     resp = menu(choices=choices, title=title)
   }

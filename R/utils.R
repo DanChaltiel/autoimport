@@ -5,15 +5,14 @@ ref_names = c("first_line", "first_byte", "last_line", "last_byte", "first_colum
 
 #TODO usethis:::read_utf8() ?
 
-#' usethis:::write_utf8
-#' @importFrom withr defer
+#' @source usethis:::write_utf8
 #' @noRd
-write_utf8 = function (path, lines, append = FALSE, line_ending="\n") {
+write_utf8 = function (path, lines, append=FALSE, line_ending="\n") {
   stopifnot(is.character(path))
   stopifnot(is.character(lines))
   file_mode = if (append) "ab" else "wb"
   con = file(path, open=file_mode, encoding="utf-8")
-  withr::defer(close(con))
+  on.exit(close(con))
   lines = gsub("\r?\n", line_ending, lines)
   writeLines(enc2utf8(lines), con, sep = line_ending,
              useBytes = TRUE)

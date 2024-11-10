@@ -53,12 +53,8 @@ autoimport = function(root=".",
   data_imports = autoimport_parse(ref_list, cache_path, use_cache, pkg_name,
                                   ns, deps, verbose)
 
-  ai_ask = autoimport_ask(ai_parse, ask, ns, importlist_path)
   data_imports = autoimport_ask(data_imports, ask, ns, importlist_path)
 
-  # browser()
-  ai_write = autoimport_write(ai_parse, ref_list, lines_list,
-                              ai_ask, ignore_package,
   ai_write = autoimport_write(data_imports, ref_list, lines_list,
                               ignore_package, pkg_name, target_dir, verbose)
 
