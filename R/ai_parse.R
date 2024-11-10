@@ -34,7 +34,7 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
             cache_ref = cache_file[[fun_name]]
             cache_ref_hash = cache_ref[["ref_hash"]]
             if(length(cache_ref_hash)==0) cache_ref_hash=""
-            ref_hash = hash(ref)
+            ref_hash = hash(as.character(ref))
             if(isTRUE(read_from_cache) && ref_hash==cache_ref_hash) {
               rtn_ref = cache_ref[["imports"]]
             } else {
