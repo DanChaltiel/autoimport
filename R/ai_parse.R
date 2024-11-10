@@ -7,10 +7,9 @@
 #' Uses a rds cache system at file and ref level
 #'
 #' @importFrom cli cli_h1 cli_inform
-#' @importFrom purrr map map_dbl map_depth
-#' @importFrom rlang hash hash_file set_names
-#' @importFrom stringr str_replace
-#' @importFrom tibble lst
+#' @importFrom dplyr as_tibble
+#' @importFrom purrr imap list_rbind map map_dbl map_depth
+#' @importFrom rlang hash hash_file
 #' @noRd
 #' @keywords internal
 autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
@@ -78,10 +77,11 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
 
 
 #' used in [list_importFrom()], calls [parse_ref()]
-#' @importFrom cli cli_abort
+#' @importFrom cli cli_abort cli_inform
 #' @importFrom dplyr arrange filter mutate pull
 #' @importFrom glue glue
 #' @importFrom purrr imap list_rbind map_chr
+#' @importFrom stringr str_starts
 #' @importFrom tibble tibble
 #' @noRd
 #' @keywords internal

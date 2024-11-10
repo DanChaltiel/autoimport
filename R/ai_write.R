@@ -6,7 +6,7 @@
 #' Returns nothing of use.
 #'
 #' @importFrom cli cli_h1 cli_inform
-#' @importFrom purrr imap map pmap
+#' @importFrom purrr imap map
 #' @importFrom stringr str_ends
 #' @importFrom tibble tibble
 #' @noRd

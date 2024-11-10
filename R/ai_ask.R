@@ -6,9 +6,8 @@
 #' Returns the input dataframe, with column `pkg` being a single-value character
 #'
 #' @importFrom cli cli_h1 cli_inform
-#' @importFrom dplyr distinct filter left_join mutate select
-#' @importFrom purrr list_rbind map map2_chr
-#' @importFrom tibble deframe
+#' @importFrom dplyr distinct filter left_join mutate pull rowwise ungroup
+#' @importFrom purrr map2_chr
 #' @noRd
 autoimport_ask = function(data_imports, ask, ns, importlist_path){
   pref_importlist = get_importlist(importlist_path)
@@ -91,6 +90,7 @@ user_input_1package = function(fun, pkg, ns, select_first){
 
 
 #' @importFrom cli cli_inform
+#' @importFrom dplyr filter
 #' @importFrom glue glue
 #' @importFrom utils menu
 ask_update_importlist = function(user_asked, path="inst/IMPORTLIST"){

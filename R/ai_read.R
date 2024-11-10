@@ -5,7 +5,6 @@
 #'
 #' @importFrom cli cli_h1 cli_inform
 #' @importFrom purrr imap
-#' @importFrom tibble lst
 #' @importFrom utils getSrcref
 #' @noRd
 #' @keywords internal
@@ -56,4 +55,3 @@ warn_duplicated = function(ref_list, verbose) {
   }
   invisible(TRUE)
 }
-
