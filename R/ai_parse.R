@@ -71,12 +71,16 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
 
   n_imports = import_list %>% map_depth(2, nrow) %>% unlist() %>% sum()
   if(verbose>0) cli_inform(c(v="Found a total of {n_imports} potential function{?s} to import"))
-  warn_not_found(import_list, verbose)
 
-  import_list %>%
+  data_imports = import_list %>%
     map(~list_rbind(.x, names_to="source_fun")) %>%
     list_rbind(names_to="file") %>%
     as_tibble()
+
+  warn_not_in_desc(data_imports, verbose)
+  warn_not_found(data_imports, verbose)
+
+  data_imports
 }
 
 
@@ -126,6 +130,10 @@ parse_function = function(ref, fun_name, pkg_name, ns, deps, verbose){
           reason = glue("`{.x$fun}()` is base R")
         } else if(isTRUE(.x$fun_already_imported)) {
           reason = glue("`{.x$label}()` is unique and already imported.")
+        } else if(isFALSE(.x$pkg_in_desc)) {
+          action = "add_description"
+          reason = glue("`{.y}()` only found in package `{.x$pkg}`,
+                         not found in DESCRIPTION.")
         } else {
           action = "add_pkg"
           reason = glue("`{.y}()` only found in package `{.x$pkg}`.")
@@ -260,26 +268,19 @@ get_function_source = function(fun, pkg, ns, pkg_name){
 #' @importFrom stringr str_remove
 #' @noRd
 #' @keywords internal
-warn_not_found = function(import_list, verbose, remove_dir=FALSE){
-  not_found = import_list %>%
-    map(bind_rows, .id="file") %>%
-    bind_rows(.id="source") %>%
-    as_tibble() %>%
+warn_not_found = function(data_imports, verbose){
+  apply_basename = getOption("autoimport_warnings_files_basename", FALSE)
+  not_found = data_imports %>%
     #filter(map_lgl(pkg, ~any(is.na(.x))))
     filter(is.na(pkg)) %>%
-    select(fun, source)
-
-  folder = dirname(not_found$source)
-  if(isFALSE(remove_dir) && n_distinct(folder)==1){
-    not_found$source = str_remove(not_found$source, paste0(folder, "/?"))
-  }
+    transmute(fun, file=ifelse(apply_basename, basename(file), file))
 
   if(nrow(not_found)>0){
     cli_h2("Warning - Not found")
-    txt = "{qty(fun)}Function{?s} {.fn {fun}} (in {.file {unique(source)}})"
+    txt = "{qty(fun)}Function{?s} {.fn {fun}} (in {.file {unique(file)}})"
     i = not_found %>%
       summarise(label = format_inline(txt),
-                .by=source) %>%
+                .by=file) %>%
       pull(label) %>%
       set_names("i")
     cli_warn(c("Functions not found:", i),
@@ -287,3 +288,24 @@ warn_not_found = function(import_list, verbose, remove_dir=FALSE){
   }
   invisible(TRUE)
 }
+
+
+warn_not_in_desc = function(data_imports, verbose){
+  apply_basename = getOption("autoimport_warnings_files_basename", FALSE)
+  not_in_desc = data_imports %>%
+    filter(action=="add_description") %>%
+    transmute(file = ifelse(apply_basename, basename(file), file),
+              source_fun, fun, pkg=pkg_str, action,
+              label=glue("`{pkg}::{fun}()` in {file}")) %>%
+    distinct(label)
+
+  if(nrow(not_in_desc)>0){
+    cli_h2("Warning - Not in DESCRIPTION")
+    b = not_in_desc$label %>% as.character() %>% set_names(">")
+    cli_warn(c("Importing functions not listed in the Imports section of DESCRIPTION:",
+               b),
+             class="autoimport_fun_not_in_desc_warn")
+  }
+  invisible(TRUE)
+}
+

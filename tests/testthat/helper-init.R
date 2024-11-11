@@ -41,6 +41,7 @@ test_path = function(path){
 }
 
 options(
+  autoimport_warnings_files_basename=TRUE,
   autoimport_testing_ask_save_importlist=NULL,
   autoimport_testing_dont_ask_select_first=NULL,
   autoimport_importlist=NULL,

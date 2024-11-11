@@ -11,6 +11,12 @@ f2 = function(){
 }
 
 
+#from roxygen, not in DESCRIPTION
+warn_in_desc = function(){
+  x = rd_roclet()
+}
+
+
 #private function, should override dplyr::mutate
 mutate = function(){
   filter("foo")

@@ -11,30 +11,29 @@ Description: A toolbox to read all R files inside a package and
     automatically generate @importFrom roxygen in the right place.
 License: GPL-3
 Depends:
-    R (>= 3.1.0)
+    R (>= 3.6.0)
 Imports:
     cli,
     desc,
-    devtools,
     diffviewer,
     digest,
     dplyr,
     glue,
-    lifecycle,
     purrr,
     readr,
     rlang,
-    rstudioapi,
     shiny,
     stringr,
     tibble,
     tidyr,
-    utils,
-    withr
+    utils
 Suggests: 
     callr,
     covr,
+    devtools,
     knitr,
+    pkgload,
+    rstudioapi,
     testthat (>= 3.0.0),
     tidyverse
 Encoding: UTF-8
