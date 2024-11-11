@@ -46,6 +46,6 @@ Therefore, some function syntaxes are not recognized and \code{autoimport} will 
 \item Functions used inside strings (e.g. \code{glue("my_fun={my_fun(x)}")})
 }
 
-To keep them imported, you should either use a prefix (\code{pkg::my_fun}) or import #' them in your package-level documentation, as this file is ignored by default (due to \code{ignore_package=TRUE}).
+To keep them imported, you should either use a prefix (\code{pkg::my_fun}) or import them in your package-level documentation, as this file is ignored by default (with \code{ignore_package=TRUE}).
 }
 

@@ -262,10 +262,8 @@ get_function_source = function(fun, pkg, ns, pkg_name){
 
 #' used in [autoimport_parse()]
 #' @importFrom cli cli_h2 cli_warn format_inline
-#' @importFrom dplyr as_tibble bind_rows filter n_distinct pull select summarise
-#' @importFrom purrr map
+#' @importFrom dplyr filter pull summarise transmute
 #' @importFrom rlang set_names
-#' @importFrom stringr str_remove
 #' @noRd
 #' @keywords internal
 warn_not_found = function(data_imports, verbose){
@@ -290,6 +288,10 @@ warn_not_found = function(data_imports, verbose){
 }
 
 
+#' @importFrom cli cli_h2 cli_warn
+#' @importFrom dplyr distinct filter transmute
+#' @importFrom glue glue
+#' @importFrom rlang set_names
 warn_not_in_desc = function(data_imports, verbose){
   apply_basename = getOption("autoimport_warnings_files_basename", FALSE)
   not_in_desc = data_imports %>%
@@ -308,4 +310,3 @@ warn_not_in_desc = function(data_imports, verbose){
   }
   invisible(TRUE)
 }
-
