@@ -21,14 +21,17 @@
 autoimport = function(root=".",
                       files=get_R_dir(root),
                       pkg_name=get_package_name(root),
-                      namespace_file=file.path(root, "NAMESPACE"),
-                      description_file=file.path(root, "DESCRIPTION"),
+                      namespace_file="NAMESPACE",
+                      description_file="DESCRIPTION",
                       use_cache=TRUE, ask=TRUE, ignore_package=TRUE,
                       verbose=2){
   target_dir = get_target_dir()
   ns = parse_namespace(namespace_file)
   importlist_path = getOption("autoimport_importlist", file.path(root, "inst/IMPORTLIST"))
   cache_path = getOption("autoimport_cache_path", file.path(root, "inst/autoimport_cache.rds"))
+  if(!file.exists(namespace_file)) namespace_file = file.path(root, namespace_file)
+  if(!file.exists(description_file)) description_file = file.path(root, description_file)
+  if(!all(file.exists(files))) files = file.path(root, "R", files)
 
   deps = desc::desc(file=description_file)$get_deps()
   main_caller$env = current_env()
