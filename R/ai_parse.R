@@ -22,11 +22,16 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
   import_list = ref_list %>%
     imap(function(refs, filename) {
       file_hash = hash_file(filename)
+      filename = basename(filename)
       if(verbose>1) cli_inform(c(">"="File {.file {filename}}"))
       cache_file = cache[[filename]]
       cache_file_hash = if(is.null(cache_file[["..file_hash"]])) "" else cache_file[["..file_hash"]]
       if(isTRUE(read_from_cache) && file_hash==cache_file_hash){
-        rtn_file = cache[[filename]][["..imports"]]
+        rtn_file = cache[[filename]][["..imports"]] %>%
+          map(~{
+            if(nrow(.x)>0) .x$ai_source = "cache_file"
+            .x
+          })
         verb = "Reading from cache"
       } else {
         rtn_file = refs %>%
@@ -37,11 +42,13 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
             ref_hash = hash(as.character(ref))
             if(isTRUE(read_from_cache) && ref_hash==cache_ref_hash) {
               rtn_ref = cache_ref[["imports"]]
+              if(nrow(rtn_ref)>0) rtn_ref$ai_source = "cache_ref"
             } else {
               rtn_ref = parse_function(ref, fun_name, pkg_name=pkg_name,
                                        ns=ns, deps=deps, verbose=verbose)
               cache[[filename]][[fun_name]][["imports"]]  <<- rtn_ref
               cache[[filename]][[fun_name]][["ref_hash"]] <<- ref_hash
+              if(!is.null(rtn_ref) & nrow(rtn_ref)>0) rtn_ref$ai_source = "file"
             }
             rtn_ref
           })
