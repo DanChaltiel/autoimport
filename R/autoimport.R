@@ -43,6 +43,7 @@ autoimport = function(root=".",
   ns_loading = deps$package %>% setdiff("R")
   check_installed(ns_loading)
   walk(ns_loading, register_namespace)
+  cli_inform(c("Autoimporting for package {.pkg {pkg_name}} at {.path {root}}"))
   cli_inform(c(v="Registered namespaces of {length(ns_loading)} dependencies."))
 
   if(any(!file.exists(files))){
