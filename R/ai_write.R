@@ -45,7 +45,8 @@ autoimport_write = function(data_imports, ref_list, lines_list, ignore_package,
       }
 
       inserts = get_inserts(.x, exclude=c("base", "inner", pkg_name))
-      cli_inform(c(i="{length(unlist(inserts))} insert{?s} in {.file {basename(cur_file)}}"))
+      if(verbose>0) cli_inform(c(i="{length(unlist(inserts))} insert{?s} in
+                                    {.file {basename(cur_file)}}"))
 
       lines2 = comments_refs %>%
         imap(~get_lines2(.x, inserts[[.y]])) %>%

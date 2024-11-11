@@ -50,13 +50,14 @@ autoimport = function(root=".",
   main_caller$env = current_env()
   if(isTRUE(use_cache)) use_cache = c("read", "write")
 
-  cli_h1("Init")
   ns_loading = deps$package %>% setdiff("R")
   check_installed(ns_loading)
   walk(ns_loading, register_namespace)
-  cli_inform(c("Autoimporting for package {.pkg {pkg_name}} at {.path {root}}"))
-  cli_inform(c(v="Registered namespaces of {length(ns_loading)} dependencies."))
-
+  if(verbose>0){
+    cli_h1("Init")
+    cli_inform(c("Autoimporting for package {.pkg {pkg_name}} at {.path {root}}"))
+    cli_inform(c(v="Registered namespaces of {length(ns_loading)} dependencies."))
+  }
   if(any(!file.exists(files))){
     cli_abort("Couldn't find file{?s} {.file {files[!file.exists(files)]}}")
   }
@@ -69,20 +70,21 @@ autoimport = function(root=".",
   data_imports = autoimport_parse(ref_list, cache_path, use_cache, pkg_name,
                                   ns, deps, verbose)
 
-  data_imports = autoimport_ask(data_imports, ns, importlist_path)
+  data_imports = autoimport_ask(data_imports, ns, importlist_path, verbose)
 
   ai_write = autoimport_write(data_imports, ref_list, lines_list,
                               ignore_package, pkg_name, target_dir, verbose)
-
-  cli_h1("Finished")
+  if(verbose>0) cli_h1("Finished")
 
   data_files = review_files(dirname(files))
   review_dir = unique(dirname(files))[1]
-  if(!any(data_files$changed)){
-    cli_inform(c(v="No changes to review."))
-  } else {
-    cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
-                 i='{.run autoimport::import_review("{review_dir}")}'))
+  if(verbose>0){
+    if(!any(data_files$changed)){
+      cli_inform(c(v="No changes to review."))
+    } else {
+      cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
+                   i='{.run autoimport::import_review("{review_dir}")}'))
+    }
   }
 
   data_imports = structure(

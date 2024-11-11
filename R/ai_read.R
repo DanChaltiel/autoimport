@@ -48,10 +48,10 @@ warn_duplicated = function(ref_list, verbose) {
     mutate(fun=paste0(fun, "()"), file=basename(as.character(file))) %>%
     arrange(fun)
   if(nrow(dups)>0){
-    cli_h2("Warning - Duplicates")
+    if(verbose>0) cli_h2("Warning - Duplicates")
     cli_warn(c("x"="There is several functions with the same name:"),
              class="autoimport_duplicate_warn")
-    message(paste0(capture.output(dups), collapse = "\n"))
+    if(verbose>0) message(paste0(capture.output(dups), collapse = "\n"))
   }
   invisible(TRUE)
 }

@@ -7,8 +7,8 @@ test_that("autoimport cache works", {
   files = c("sample_funs.R", "sample_funs2.R")
   ai_1 = test_autoimport(files, use_cache="write",
                          verbose=0) %>%
-    suppressMessages() %>%
-    suppressWarnings()
+    suppressWarnings() %>%
+    expect_silent() #check that verbose=0 is silent
 
   expect_setequal(ai_1$ai_source, "file")
   root = attr(ai_1, "root")

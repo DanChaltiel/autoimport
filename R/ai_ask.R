@@ -9,7 +9,7 @@
 #' @importFrom dplyr distinct filter left_join mutate pull rowwise ungroup
 #' @importFrom purrr map2_chr
 #' @noRd
-autoimport_ask = function(data_imports, ns, importlist_path){
+autoimport_ask = function(data_imports, ns, importlist_path, verbose){
   pref_importlist = get_importlist(importlist_path)
   unsure_funs = data_imports %>%
     filter(action=="ask_user") %>%
@@ -18,14 +18,14 @@ autoimport_ask = function(data_imports, ns, importlist_path){
 
   if(nrow(unsure_funs)==0) return(data_imports)
 
-  cli_h1("Attributing")
+  if(verbose>0) cli_h1("Attributing")
   # rtn = list()
   defined_funs = unsure_funs %>%
     filter(!is.na(pref_pkg))
   undefined_funs = unsure_funs %>%
     filter(is.na(pref_pkg))
 
-  if(nrow(defined_funs)>0){
+  if(verbose>0 && nrow(defined_funs)>0){
     cli_inform(c(i="Automatically attributing {nrow(defined_funs)} function import{?s}
                     as predefined in {.file {importlist_path}}"))
   }
@@ -40,7 +40,7 @@ autoimport_ask = function(data_imports, ns, importlist_path){
       ) %>%
       ungroup()
 
-    ask_update_importlist(unsure_funs, importlist_path)
+    ask_update_importlist(unsure_funs, importlist_path, verbose)
   }
 
   fun_replace_list = unsure_funs %>% pull(pref_pkg, name=fun) %>% as.list()
@@ -85,13 +85,13 @@ user_input_1package = function(fun, pkg, ns){
 #' @importFrom dplyr filter
 #' @importFrom glue glue
 #' @importFrom utils menu
-ask_update_importlist = function(user_asked, path="inst/IMPORTLIST"){
+ask_update_importlist = function(user_asked, path="inst/IMPORTLIST", verbose=TRUE){
   user_asked = user_asked %>% filter(!defined_in_importlist)
   resp = getOption("autoimport_testing_ask_save_importlist")
   if(!is.null(resp)){
     stopifnot(resp==1 || resp==2)
     x = if(resp==1) "" else "not "
-    cli_inform(c(i="TESTING: {x}saving choices in {.file {path}}"))
+    if(verbose>0) cli_inform(c(i="TESTING: {x}saving choices in {.file {path}}"))
   } else {
     s = if(nrow(user_asked)>1) "s" else ""
     title = glue("\n\nDo you want to save your choices about these {nrow(user_asked)} function{s} in `{path}`?")

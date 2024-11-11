@@ -276,7 +276,7 @@ warn_not_found = function(data_imports, verbose){
     transmute(fun, file=ifelse(apply_basename, basename(file), file))
 
   if(nrow(not_found)>0){
-    cli_h2("Warning - Not found")
+    if(verbose>0) cli_h2("Warning - Not found")
     txt = "{qty(fun)}Function{?s} {.fn {fun}} (in {.file {unique(file)}})"
     i = not_found %>%
       summarise(label = format_inline(txt),
@@ -300,7 +300,7 @@ warn_not_in_desc = function(data_imports, verbose){
     distinct(label)
 
   if(nrow(not_in_desc)>0){
-    cli_h2("Warning - Not in DESCRIPTION")
+    if(verbose>0) cli_h2("Warning - Not in DESCRIPTION")
     b = not_in_desc$label %>% as.character() %>% set_names(">")
     cli_warn(c("Importing functions not listed in the Imports section of DESCRIPTION:",
                b),
