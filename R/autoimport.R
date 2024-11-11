@@ -75,14 +75,16 @@ autoimport = function(root=".",
 
   data_imports = structure(
     data_imports,
-    root=root,
-    files=files,
+    root=normalizePath(root),
+    files=unname(files),
     namespace_file=namespace_file,
     description_file=description_file,
     use_cache=use_cache, ask=ask, ignore_package=ignore_package,
     verbose=verbose,
+
     target_dir=target_dir,
     review_dir=review_dir,
+    cache_path=cache_path,
     session_info=sessionInfo()
   )
 
