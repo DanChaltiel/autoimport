@@ -52,23 +52,3 @@ test_that("autoimport works", {
 })
 
 
-
-#TODO utiliser seulement ces packages
-# cli,
-# desc,
-# devtools,
-# diffviewer,
-# digest,
-# dplyr,
-# glue,
-# lifecycle,
-# purrr,
-# readr,
-# rlang,
-# rstudioapi,
-# shiny,
-# stringr,
-# tibble,
-# tidyr,
-# utils,
-# withr

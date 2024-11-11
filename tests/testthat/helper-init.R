@@ -90,23 +90,25 @@ expect_not_imported = function(output, pkg, fun){
   invisible(faulty)
 }
 
-test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, verbose=2){
+test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, verbose=2){
   #reset file paths
-  dir_source = test_path("source") %>% normalizePath()
-  nm = paste0("autoimport_test_", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"))
-  tmp = file.path(tempdir(), nm)
-  unlink(tmp, recursive=TRUE)
-  dir.create(tmp)
-  file.copy(dir(dir_source, full.names=TRUE), to=tmp, recursive=TRUE)
-  dir(tmp, full.names=TRUE, recursive=TRUE)
-  wd = setwd(tmp)
+  if(is.null(root)){
+    dir_source = test_path("source") %>% normalizePath()
+    nm = paste0("autoimport_test_", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"))
+    root = file.path(tempdir(), nm)
+    unlink(root, recursive=TRUE)
+    dir.create(root)
+    file.copy(dir(dir_source, full.names=TRUE), to=root, recursive=TRUE)
+    # dir(root, full.names=TRUE, recursive=TRUE)
+  }
+  wd = setwd(root)
   on.exit(setwd(wd))
 
   #load the whole test namespace
-  pkgload::load_all(path=tmp, helpers=FALSE, quiet=TRUE)
+  pkgload::load_all(path=root, helpers=FALSE, quiet=TRUE)
 
   #set options
-  local_options(
+  rlang::local_options(
     rlang_backtrace_on_error = "full",
     autoimport_testing_ask_save_importlist = 2 #2=No, 1=Yes
   )
@@ -114,7 +116,7 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, verbose=2){
   #run
   ns = if(bad_ns) "BAD_NAMESPACE" else "NAMESPACE"
   autoimport(
-    root=tmp,
+    root=root,
     files=files,
     ignore_package=TRUE,
     use_cache=use_cache,
