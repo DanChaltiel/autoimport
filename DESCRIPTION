@@ -29,8 +29,7 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    utils,
-    withr
+    utils
 Suggests: 
     callr,
     covr,

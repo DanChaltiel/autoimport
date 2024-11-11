@@ -106,7 +106,7 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, verbose=2){
   pkgload::load_all(path=tmp, helpers=FALSE, quiet=TRUE)
 
   #set options
-  withr::local_options(
+  local_options(
     rlang_backtrace_on_error = "full",
     autoimport_testing_ask_save_importlist = 2 #2=No, 1=Yes
   )

@@ -126,22 +126,6 @@ get_anywhere = function(fun, add_pkgs=NULL){
   pkgs
 }
 
-#' @noRd
-#' @importFrom purrr map_lgl
-#' @importFrom rlang set_names
-get_anywhere_bak = function(fun, prefer=NULL){
-  # pkgs = getAnywhere(fun)$where %>% str_remove("package:|namespace:") %>% unique() %>% sort()
-  pkgs = loadedNamespaces() %>% set_names() %>% map_lgl(~{
-    exists(fun, envir=asNamespace(.x), inherits=FALSE, mode="function")
-  })
-  pkgs = sort(names(pkgs[pkgs]))
-
-  pref = pkgs[pkgs %in% prefer]
-  if(length(pref)>0) return(pref)
-
-  exported = map_lgl(pkgs, ~is_exported_bak(fun, .x))
-  pkgs[exported]
-}
 
 #' @importFrom rlang ns_env
 #' @noRd
@@ -150,22 +134,6 @@ register_namespace = function(name){
   TRUE
 }
 
-
-#' @importFrom cli cli_abort
-#' @importFrom rlang is_installed
-#' @importFrom withr with_package
-#' @noRd
-is_exported_bak = function(fun, pkg, fail=FALSE){
-  if(!is_installed(pkg)){
-    if(fail) cli_abort("{.pkg {pkg}} is not installed")
-    return(FALSE)
-  }
-
-
-  l = suppressWarnings(with_package(pkg, try(ls(paste0("package:",pkg)), silent=TRUE), quietly=TRUE))
-  if(inherits(l, "try-error")) return(FALSE)
-  fun %in% l
-}
 
 #' is_exported("div", "htmltools")
 #' is_exported("div", "shiny")
@@ -182,6 +150,7 @@ is_exported = function(fun, pkg, type="::", fail=FALSE){
   f = try(eval(parse(text=text)), silent=TRUE)
   is.function(f)
 }
+
 
 #' @noRd
 #' @importFrom utils installed.packages
