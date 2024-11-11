@@ -15,6 +15,16 @@
 #' @return Mostly used for side effects. Invisibly returns a dataframe summarizing the function imports, with input arguments as attributes.
 #' @export
 #'
+#' @section Limitations:
+#' Autoimport is based on [utils::getSrcref()] and share the same limits.
+#' Therefore, some function syntaxes are not recognized and `autoimport` will try to remove their `@importFrom` from individual functions:
+#'
+#' - Operators (`@importFrom dplyr %>%`, `@importFrom rlang :=`, ...)
+#' - Functions called by name (e.g. `sapply(x, my_fun))`
+#' - Functions used inside strings (e.g. `glue("my_fun={my_fun(x)}")`)
+#'
+#' To keep them imported, you should either use a prefix (`pkg::my_fun`) or import them in your package-level documentation, as this file is ignored by default (with `ignore_package=TRUE`).
+#'
 #' @importFrom cli cli_abort cli_h1 cli_inform
 #' @importFrom purrr map walk
 #' @importFrom rlang check_installed current_env set_names

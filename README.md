@@ -6,17 +6,18 @@
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) 
 [![CRAN status](https://www.r-pkg.org/badges/version/autoimport)](https://CRAN.R-project.org/package=autoimport) 
 [![Last Commit](https://img.shields.io/github/last-commit/DanChaltiel/autoimport)](https://github.com/DanChaltiel/autoimport)
-[![R-CMD-check](https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml)
 <!--[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/grand-total/autoimport?color=blue)](https://r-pkg.org/pkg/autoimport)  -->
 <!-- badges: end -->
 
 `autoimport` is a package designed to easily add `@importFrom` roxygen tags to all your functions.
 
+
 ## Concept
 
 When importing functions to use them in a package, you have the choice between `@import pkg` to import a whole package and `@importFrom pkg fun1 fun2` to import only a few functions.
 
-The @importFrom syntax is preferable, as it has been stressed out that importing whole packages "makes your code harder to read (you can't tell where a function is coming from), and if you @import many packages, it increases the chance of function name conflicts."
+The `@importFrom` syntax is preferable, as it has been stressed out that importing whole packages "makes your code harder to read (you can't tell where a function is coming from), and if you `@import` many packages, it increases the chances of function name conflicts."
 
 The [R Packages (2e)](https://r-pkgs.org/dependencies-in-practice.html#in-code-below-r) guidelines say that here are two reasonable locations for @importFrom :
 
@@ -28,13 +29,14 @@ I find the first option much clearer, but, as they warn, it tends to get very te
 
 Therefore, `autoimport` will parse your code, detect all the functions you import, and then add the right @importFrom tags in the right place. Just like that!
 
+
 ## Installation
 
 For now, only the development version is available:
 
 ``` r
 # Install development version on Github
-devtools::install_github("DanChaltiel/autoimport")
+pak::pak("DanChaltiel/autoimport")
 ```
 
 ## Getting started
@@ -53,58 +55,39 @@ Then, you can see the diff and accept the changes using a shiny widget:
 autoimport::import_review()
 ```
 
-## Known limits
 
-*Call for help*:If someone has an idea on how to overcome some of these, please reach out!
+## Limitations
 
-### False negatives
+Autoimport is based on `utils::getSrcref()` and share the same limits.
+Therefore, some function syntaxes are not recognized and `autoimport` will try to remove their `@importFrom` from individual functions:
 
-Autoimport is based on `utils::getSrcref()` and share the same limits. 
+- Operators (`@importFrom dplyr %>%`, `@importFrom rlang :=`, ...)
+- Functions called by name (e.g. `sapply(x, my_fun))` 
+- Functions used inside strings (e.g. `glue("my_fun={my_fun(x)}")`)  
 
-Therefore it wont recognize as functions and try to remove imports of: 
+To keep them imported, you should either use a prefix (`pkg::my_fun`) or import them in your package-level documentation, as this file is ignored by default (due to `ignore_package=TRUE`). 
 
-- operators (`@importFrom dplyr %>%`, `@importFrom rlang :=`, ...).
+For that, `usethis::use_package_doc()` and `usethis::use_pipe()` are your friends!
 
-- functions called by name (e.g. `my_fun` in `sapply(x, my_fun)`) or used inside strings (e.g. `glue("my_fun={my_fun(x)}")`).
-
-The best way to avoid this problem is to put these imports in your package-level documentation, as this file is ignored by default (due to `ignore_package=TRUE`). For that, `usethis::use_package_doc()` and `usethis::use_pipe()` are your friends!
-
-### False positives
-
-Some functions rely on packages from the `Suggest` section of `DESCRIPTION`.
-
-Unfortunately, `autoimport` cannot understand this and will try to import those function in `NAMESPACE`, causing a check failure.
-
-**WIP:** In the future, an exclusion list will be added to remove specific function from reading or writing using `autoimport`.
-
-### Prefixes
-
-If you need the same function from 2 different packages (e.g. `dplyr::desc()` and `desc::desc()` in my case), it might cause troubles sometimes...
+Also, note that R6 methods calls trigger a "not found" warning (WIP, see #21).
 
 
-### Reexports
+## Cache system
 
-Reexports are really annoying because they can be exported by a package while belonging to another namespace.
+As running `autoimport()` on a large package can take some time, a cache system is implemented, by default in file `inst/autoimport_cache.rds`.
 
-For instance, `div` is reexported by `shiny` from `htmltools`, so autoimport will try to import it from there:
+Any function not modified since last run should be taken from the cache, resulting on a much faster run.
 
-```diff
-+  #' @importFrom htmltools div            
-   #' @importFrom rlang set_names            
--  #' @importFrom shiny actionButton div fluidPage fluidRow observeEvent
-+  #' @importFrom shiny actionButton fluidPage fluidRow observeEvent
-```
+In some seldom cases, this can cause issues with modifications in DESCRIPTION or IMPORTLIST not being taken into account. Run `clean_cache()` to remove this file, or use `use_cache="write"`.
 
-Accepting this will cause an unneeded dependency over `htmltools`.
-
-**WIP:** This might be manually enforced in IMPORTLIST.
 
 ## Algorithm
 
-When trying to figure out which package to import a function from, `autoimport()` follow this algorithm:
+When trying to figure out which package to import a function from, `autoimport()` follows this algorithm:
 
--   If the function is already mentioned in NAMESPACE, use the package
--   Else, if the function is only exported by one package, use this package
+-   If the function is prefixed with the package, ignore
+-   Else, if the function is already mentioned in NAMESPACE, use the package
+-   Else, if the function is exported by only one package, use this package
 -   Else, ask the user from which package to import the function
 -   Else, warn that the function was not found
 
@@ -116,7 +99,5 @@ Note that this algorithm is still a bit experimental and that I could only test 
 As I couldn't find any standardized guideline about the right order of `roxygen2` tags, `autoimport` puts them:
 
 -   in place of the first @importFrom tag if there is one
-
 -   **WIP:** just before examples if there are some
-
 -   just before the function call otherwise

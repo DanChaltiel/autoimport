@@ -36,3 +36,16 @@ Mostly used for side effects. Invisibly returns a dataframe summarizing the func
 Automatically read all \code{R} files and compute appropriate \verb{@importFrom} tags in the roxygen headers.
 Choose which tags to add in the shiny app \code{\link[=import_review]{import_review()}} afterward.
 }
+\section{Limitations}{
+
+Autoimport is based on \code{\link[utils:sourceutils]{utils::getSrcref()}} and share the same limits.
+Therefore, some function syntaxes are not recognized and \code{autoimport} will try to remove their \verb{@importFrom} from individual functions:
+\itemize{
+\item Operators (\verb{@importFrom dplyr \%>\%}, \verb{@importFrom rlang :=}, ...)
+\item Functions called by name (e.g. \verb{sapply(x, my_fun))}
+\item Functions used inside strings (e.g. \code{glue("my_fun={my_fun(x)}")})
+}
+
+To keep them imported, you should either use a prefix (\code{pkg::my_fun}) or import #' them in your package-level documentation, as this file is ignored by default (due to \code{ignore_package=TRUE}).
+}
+

@@ -11,6 +11,7 @@ A toolbox to read all R files inside a package and automatically generate @impor
 Useful links:
 \itemize{
   \item \url{https://github.com/DanChaltiel/autoimport}
+  \item \url{https://danchaltiel.github.io/autoimport/}
   \item Report bugs at \url{https://github.com/DanChaltiel/autoimport/issues}
 }
 
