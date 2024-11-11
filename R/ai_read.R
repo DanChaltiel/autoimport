@@ -45,7 +45,7 @@ warn_duplicated = function(ref_list, verbose) {
     filter(values %in% values[duplicated(values)],
            !str_detect(values, "^unnamed_\\d+$")) %>%
     rename(fun=values, file=ind) %>%
-    mutate(fun=paste0(fun, "()")) %>%
+    mutate(fun=paste0(fun, "()"), file=basename(file)) %>%
     arrange(fun)
   if(nrow(dups)>0){
     cli_h2("Warning - Duplicates")
