@@ -40,7 +40,6 @@ autoimport = function(root=".",
   walk(ns_loading, register_namespace)
   cli_inform(c(v="Registered namespaces of {length(ns_loading)} dependencies."))
 
-
   if(any(!file.exists(files))){
     cli_abort("Couldn't find file{?s} {.file {files[!file.exists(files)]}}")
   }
@@ -61,12 +60,25 @@ autoimport = function(root=".",
   cli_h1("Finished")
 
   data_files = review_files(dirname(files))
+  review_dir = unique(dirname(files))[1]
   if(!any(data_files$changed)){
     cli_inform(c(v="No changes to review."))
   } else {
     cli_inform(c(v="To view the diff and choose whether or not accepting the changes, run:",
-                 i='{.run autoimport::import_review("{dirname(files)[1]}")}'))
+                 i='{.run autoimport::import_review("{review_dir}")}'))
   }
+
+  data_imports = structure(
+    data_imports,
+    root=root,
+    files=files,
+    namespace_file=namespace_file,
+    description_file=description_file,
+    use_cache=use_cache, ask=ask, ignore_package=ignore_package,
+    verbose=verbose,
+    review_dir=review_dir,
+    session_info=sessionInfo()
+  )
 
   invisible(data_imports)
 }
