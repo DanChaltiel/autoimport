@@ -20,7 +20,6 @@
 #' @importFrom rlang check_installed current_env set_names
 autoimport = function(root=".",
                       files=get_R_dir(root),
-                      pkg_name=get_package_name(root),
                       namespace_file="NAMESPACE",
                       description_file="DESCRIPTION",
                       use_cache=TRUE, ask=TRUE, ignore_package=TRUE,
@@ -33,7 +32,10 @@ autoimport = function(root=".",
   if(!file.exists(description_file)) description_file = file.path(root, description_file)
   if(!all(file.exists(files))) files = file.path(root, "R", files)
 
-  deps = desc::desc(file=description_file)$get_deps()
+  description = desc::desc(file=description_file)
+  deps = description$get_deps()
+  pkg_name = unname(description$get("Package"))
+
   main_caller$env = current_env()
   if(isTRUE(use_cache)) use_cache = c("read", "write")
 

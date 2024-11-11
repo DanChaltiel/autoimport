@@ -189,13 +189,6 @@ get_base_packages = function(){
   rownames(installed.packages(priority="base"))
 }
 
-#' @importFrom devtools as.package
-#' @noRd
-get_package_name = function(root="."){
-  default = devtools::as.package(root)$package
-  getOption("autoimport_pkg", default)
-}
-
 
 #' @noRd
 get_R_dir = function(root="."){

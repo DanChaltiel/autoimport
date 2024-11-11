@@ -17,7 +17,6 @@ Depends:
 Imports:
     cli,
     desc,
-    devtools,
     diffviewer,
     digest,
     dplyr,
