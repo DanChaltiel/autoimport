@@ -42,6 +42,7 @@ test_path = function(path){
 
 options(
   autoimport_testing_ask_save_importlist=NULL,
+  autoimport_testing_dont_ask_select_first=NULL,
   autoimport_importlist=NULL,
   autoimport_target_dir=NULL
 )
@@ -110,6 +111,7 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, verb
   #set options
   rlang::local_options(
     rlang_backtrace_on_error = "full",
+    autoimport_testing_dont_ask_select_first = TRUE,
     autoimport_testing_ask_save_importlist = 2 #2=No, 1=Yes
   )
 
@@ -121,7 +123,6 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, verb
     ignore_package=TRUE,
     use_cache=use_cache,
     namespace_file=ns,
-    ask=FALSE,
     verbose=verbose
   )
 

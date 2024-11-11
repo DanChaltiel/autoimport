@@ -9,7 +9,7 @@
 #' @importFrom dplyr distinct filter left_join mutate pull rowwise ungroup
 #' @importFrom purrr map2_chr
 #' @noRd
-autoimport_ask = function(data_imports, ask, ns, importlist_path){
+autoimport_ask = function(data_imports, ns, importlist_path){
   pref_importlist = get_importlist(importlist_path)
   unsure_funs = data_imports %>%
     filter(action=="ask_user") %>%
@@ -31,21 +31,12 @@ autoimport_ask = function(data_imports, ask, ns, importlist_path){
   }
 
   if(nrow(undefined_funs)>0){
-    if(ask){
-      selected = user_input_pkg_choose(undefined_funs)
-    } else {
-      cli_inform(c(i="Automatically attributing {nrow(undefined_funs)} non-predefined
-                      function import{?s}, as {.arg ask==FALSE}"))
-      selected = 2
-    }
-    if(selected==0 || selected==3) stop("Abort mission")
-
     unsure_funs = unsure_funs %>%
       rowwise() %>%
       mutate(
         defined_in_importlist = !is.na(pref_pkg),
         pref_pkg = ifelse(defined_in_importlist, pref_pkg,
-                          user_input_1package(fun, pkg, ns, select_first=selected==2))
+                          user_input_1package(fun, pkg, ns))
       ) %>%
       ungroup()
 
@@ -74,10 +65,11 @@ user_input_pkg_choose = function(unsure_funs){
 #' @importFrom stringr str_pad
 #' @importFrom utils menu
 #' @noRd
-user_input_1package = function(fun, pkg, ns, select_first){
+user_input_1package = function(fun, pkg, ns){
   ni = map_int(pkg, ~sum(ns$importFrom$from==.x))
   pkg = pkg[order(ni, decreasing=TRUE)]
   ni = ni[order(ni, decreasing=TRUE)]
+  select_first = getOption("autoimport_testing_dont_ask_select_first", FALSE)
   if(select_first) return(pkg[1])
   label = glue(" ({n} function{s} imported)", n=str_pad(ni, max(nchar(ni))), s = ifelse(ni>1, "s", ""))
   label[pkg=="base"] = ""

@@ -9,7 +9,6 @@
 #' @param namespace_file Path to the NAMESPACE file
 #' @param description_file Path to the DESCRIPTION file
 #' @param use_cache Whether to use the cache system. Can only be "read" or "write".
-#' @param ask Whether to ask the user when multiple choices arise
 #' @param ignore_package Whether to ignore files ending with `-package.R`
 #' @param verbose The higher, the more output printed. May slow the process a bit.
 #'
@@ -23,7 +22,7 @@ autoimport = function(root=".",
                       files=get_R_dir(root),
                       namespace_file="NAMESPACE",
                       description_file="DESCRIPTION",
-                      use_cache=TRUE, ask=TRUE, ignore_package=TRUE,
+                      use_cache=TRUE, ignore_package=TRUE,
                       verbose=2){
   target_dir = get_target_dir()
   ns = parse_namespace(namespace_file)
@@ -59,7 +58,7 @@ autoimport = function(root=".",
   data_imports = autoimport_parse(ref_list, cache_path, use_cache, pkg_name,
                                   ns, deps, verbose)
 
-  data_imports = autoimport_ask(data_imports, ask, ns, importlist_path)
+  data_imports = autoimport_ask(data_imports, ns, importlist_path)
 
   ai_write = autoimport_write(data_imports, ref_list, lines_list,
                               ignore_package, pkg_name, target_dir, verbose)
@@ -81,7 +80,7 @@ autoimport = function(root=".",
     files=unname(files),
     namespace_file=namespace_file,
     description_file=description_file,
-    use_cache=use_cache, ask=ask, ignore_package=ignore_package,
+    use_cache=use_cache, ignore_package=ignore_package,
     verbose=verbose,
 
     target_dir=target_dir,
