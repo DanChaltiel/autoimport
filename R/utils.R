@@ -211,6 +211,7 @@ get_cache_path = function(root="."){
 
 #' @noRd
 #' @keywords internal
+#' @importFrom cli cli_abort
 clean_cache = function(root="."){
   cache_file = get_cache_path(root)
   rslt = unlink(cache_dir, recursive=TRUE)

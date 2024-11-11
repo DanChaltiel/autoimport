@@ -18,6 +18,7 @@
 #' @importFrom cli cli_abort cli_h1 cli_inform
 #' @importFrom purrr map walk
 #' @importFrom rlang check_installed current_env set_names
+#' @importFrom utils sessionInfo
 autoimport = function(root=".",
                       files=get_R_dir(root),
                       namespace_file="NAMESPACE",

@@ -52,13 +52,12 @@ import_review = function(source_path="R/",
 }
 
 
-#' @rdname import_review
-#' @param path,output_path mostly used for tests
-#' @description NULL
-#' @export
+
 #' @importFrom digest digest
 #' @importFrom purrr map2_lgl
 #' @importFrom tibble tibble
+#' @noRd
+#' @keywords internal
 review_files = function(source_path="R/", output_path=get_target_dir()){
   old_files = dir(source_path, full.names=TRUE)
   assert_file_exists(old_files)

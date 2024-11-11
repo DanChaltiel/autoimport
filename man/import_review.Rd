@@ -2,7 +2,6 @@
 % Please edit documentation in R/decision.R
 \name{import_review}
 \alias{import_review}
-\alias{review_files}
 \title{Decision management}
 \source{
 inspired by \code{\link[testthat:snapshot_accept]{testthat::snapshot_review()}}
@@ -13,8 +12,6 @@ import_review(
   output_path = get_target_dir(),
   background = getOption("autoimport_background", FALSE)
 )
-
-review_files(source_path = "R/", output_path = get_target_dir())
 }
 \arguments{
 \item{source_path}{path to the original R files}
@@ -22,8 +19,6 @@ review_files(source_path = "R/", output_path = get_target_dir())
 \item{output_path}{path to the updated R files}
 
 \item{background}{whether to run the app in a background process. Default to \code{getOption("autoimport_background", FALSE)}.}
-
-\item{path, output_path}{mostly used for tests}
 }
 \value{
 nothing if \code{background==FALSE}, the (\link[callr:reexports]{callr::process}) object if \code{background==TRUE}

@@ -10,7 +10,6 @@ autoimport(
   namespace_file = "NAMESPACE",
   description_file = "DESCRIPTION",
   use_cache = TRUE,
-  ask = TRUE,
   ignore_package = TRUE,
   verbose = 2
 )
@@ -25,8 +24,6 @@ autoimport(
 \item{description_file}{Path to the DESCRIPTION file}
 
 \item{use_cache}{Whether to use the cache system. Can only be "read" or "write".}
-
-\item{ask}{Whether to ask the user when multiple choices arise}
 
 \item{ignore_package}{Whether to ignore files ending with \code{-package.R}}
 

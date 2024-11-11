@@ -31,3 +31,4 @@ DEV\.R
 ^CRAN-RELEASE$
 ^codemeta\.json$
 ^CRAN-SUBMISSION$
+^internal\.md$

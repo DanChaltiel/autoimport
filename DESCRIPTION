@@ -32,7 +32,9 @@ Imports:
 Suggests: 
     callr,
     covr,
+    devtools,
     knitr,
+    pkgload,
     rstudioapi,
     testthat (>= 3.0.0),
     tidyverse
