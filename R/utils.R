@@ -198,7 +198,7 @@ get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
 
 #' @noRd
 get_target_dir = function(path=NULL){
-  tmp = file.path(tempdir(), "autoimport")
+  tmp = file.path(tempdir(), "autoimport_temp_target_dir")
   d = getOption("autoimport_target_dir", tmp)
   if(!is.null(path)) d = file.path(d, path)
   dir.create(d, recursive=TRUE, showWarnings=FALSE)
