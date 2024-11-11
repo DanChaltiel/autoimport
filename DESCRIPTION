@@ -21,7 +21,6 @@ Imports:
     digest,
     dplyr,
     glue,
-    lifecycle,
     purrr,
     readr,
     rlang,

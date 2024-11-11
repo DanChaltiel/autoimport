@@ -2,6 +2,6 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom lifecycle deprecated
+#' @importFrom dplyr %>%
 ## usethis namespace: end
 NULL

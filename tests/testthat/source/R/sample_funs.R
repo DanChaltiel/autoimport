@@ -25,7 +25,7 @@ f1 = function(x){
   x = filter(x, TRUE)
   #explicit calls, should not be imported
   x = dplyr::arrange(x, TRUE)
-  x = knitr::asis_output(x, TRUE)
+  x = glue::glue(x, TRUE)
   #base function, should not be imported
   x = sum(x)
   x = date(x) #not from lubridate (IMPORTLIST)
