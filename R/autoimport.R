@@ -1,18 +1,19 @@
 
-#' Automatically add `@importFrom` tags
+#' Automatically compute `@importFrom` tags
 #'
-#' Automatically read all `R` files and add appropriate `@importFrom` tags in the roxygen headers.
+#' Automatically read all `R` files and compute appropriate `@importFrom` tags in the roxygen headers.
+#' Choose which tags to add in the shiny app [import_review()] afterward.
 #'
-#' @param files files to read. Default to the `R/` folder.
-#' @param pkg_name name of the package (character)
-#' @param namespace_file path to the NAMESPACE file
-#' @param description_file path to the DESCRIPTION file
-#' @param use_cache use the cache system. Can only be "read" or "write".
-#' @param ask whether to ask the user when multiple choices arise
-#' @param ignore_package ignore files ending with `-package.R`
-#' @param verbose the higher, the more output printed. Slows the process a bit.
+#' @param root Path to the root of the package.
+#' @param files Files to read. Default to the `R/` folder.
+#' @param namespace_file Path to the NAMESPACE file
+#' @param description_file Path to the DESCRIPTION file
+#' @param use_cache Whether to use the cache system. Can only be "read" or "write".
+#' @param ask Whether to ask the user when multiple choices arise
+#' @param ignore_package Whether to ignore files ending with `-package.R`
+#' @param verbose The higher, the more output printed. May slow the process a bit.
 #'
-#' @return Nothing, used for side effects.
+#' @return Mostly used for side effects. Invisibly returns a dataframe summarizing the function imports, with input arguments as attributes.
 #' @export
 #'
 #' @importFrom cli cli_abort cli_h1 cli_inform

@@ -2,14 +2,13 @@
 % Please edit documentation in R/autoimport.R
 \name{autoimport}
 \alias{autoimport}
-\title{Automatically add \verb{@importFrom} tags}
+\title{Automatically compute \verb{@importFrom} tags}
 \usage{
 autoimport(
   root = ".",
   files = get_R_dir(root),
-  pkg_name = get_package_name(root),
-  namespace_file = file.path(root, "NAMESPACE"),
-  description_file = file.path(root, "DESCRIPTION"),
+  namespace_file = "NAMESPACE",
+  description_file = "DESCRIPTION",
   use_cache = TRUE,
   ask = TRUE,
   ignore_package = TRUE,
@@ -17,25 +16,26 @@ autoimport(
 )
 }
 \arguments{
-\item{files}{files to read. Default to the \verb{R/} folder.}
+\item{root}{Path to the root of the package.}
 
-\item{pkg_name}{name of the package (character)}
+\item{files}{Files to read. Default to the \verb{R/} folder.}
 
-\item{namespace_file}{path to the NAMESPACE file}
+\item{namespace_file}{Path to the NAMESPACE file}
 
-\item{description_file}{path to the DESCRIPTION file}
+\item{description_file}{Path to the DESCRIPTION file}
 
-\item{use_cache}{use the cache system}
+\item{use_cache}{Whether to use the cache system. Can only be "read" or "write".}
 
-\item{ask}{whether to ask the user when multiple choices arise}
+\item{ask}{Whether to ask the user when multiple choices arise}
 
-\item{ignore_package}{ignore files ending with \code{-package.R}}
+\item{ignore_package}{Whether to ignore files ending with \code{-package.R}}
 
-\item{verbose}{the higher, the more output printed}
+\item{verbose}{The higher, the more output printed. May slow the process a bit.}
 }
 \value{
-Nothing, used for side effects.
+Mostly used for side effects. Invisibly returns a dataframe summarizing the function imports, with input arguments as attributes.
 }
 \description{
-Automatically read all \code{R} files and add appropriate \verb{@importFrom} tags in the roxygen headers.
+Automatically read all \code{R} files and compute appropriate \verb{@importFrom} tags in the roxygen headers.
+Choose which tags to add in the shiny app \code{\link[=import_review]{import_review()}} afterward.
 }
