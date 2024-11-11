@@ -27,7 +27,7 @@ autoimport = function(root=".",
   target_dir = get_target_dir()
   ns = parse_namespace(namespace_file)
   importlist_path = getOption("autoimport_importlist", file.path(root, "inst/IMPORTLIST"))
-  cache_path = getOption("autoimport_cache_path", file.path(root, "inst/autoimport_cache.rds"))
+  cache_path = get_cache_path(root)
   if(!file.exists(namespace_file)) namespace_file = file.path(root, namespace_file)
   if(!file.exists(description_file)) description_file = file.path(root, description_file)
   if(!all(file.exists(files))) files = file.path(root, "R", files)

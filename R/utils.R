@@ -159,11 +159,6 @@ get_base_packages = function(){
 }
 
 
-#' @noRd
-get_R_dir = function(root="."){
-  path = file.path(root, "R")
-  dir(path, pattern="\\.[Rr]$|", full.names=TRUE)
-}
 
 
 # https://stackoverflow.com/a/31675695/3888000
@@ -197,6 +192,11 @@ get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
 
 
 #' @noRd
+get_R_dir = function(root="."){
+  path = file.path(root, "R")
+  dir(path, pattern="\\.[Rr]$|", full.names=TRUE)
+}
+#' @noRd
 get_target_dir = function(path=NULL){
   tmp = file.path(tempdir(), "autoimport_temp_target_dir")
   d = getOption("autoimport_target_dir", tmp)
@@ -204,12 +204,19 @@ get_target_dir = function(path=NULL){
   dir.create(d, recursive=TRUE, showWarnings=FALSE)
   d
 }
+#' @noRd
+get_cache_path = function(root="."){
+  getOption("autoimport_cache_path", file.path(root, "inst/autoimport_cache.rds"))
+}
 
 #' @noRd
 #' @keywords internal
-clean_cache = function(){
-  cache_dir = get_target_dir("cache")
-  unlink(cache_dir, recursive=TRUE)
+clean_cache = function(root="."){
+  cache_file = get_cache_path(root)
+  rslt = unlink(cache_dir, recursive=TRUE)
+  if(rslt==1){
+    cli_abort("Could not remove {.file {cache_file}}.")
+  }
   invisible(TRUE)
 }
 
