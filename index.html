@@ -56,7 +56,7 @@
 <h2 id="concept">Concept<a class="anchor" aria-label="anchor" href="#concept"></a>
 </h2>
 <p>When importing functions to use them in a package, you have the choice between <code>@import pkg</code> to import a whole package and <code>@importFrom pkg fun1 fun2</code> to import only a few functions.</p>
-<p>The @importFrom syntax is preferable, as it has been stressed out that importing whole packages “makes your code harder to read (you can’t tell where a function is coming from), and if you @import many packages, it increases the chance of function name conflicts.”</p>
+<p>The <code>@importFrom</code> syntax is preferable, as it has been stressed out that importing whole packages “makes your code harder to read (you can’t tell where a function is coming from), and if you <code>@import</code> many packages, it increases the chances of function name conflicts.”</p>
 <p>The <a href="https://r-pkgs.org/dependencies-in-practice.html#in-code-below-r" class="external-link">R Packages (2e)</a> guidelines say that here are two reasonable locations for @importFrom :</p>
 <blockquote>
 <ul>
@@ -73,7 +73,7 @@
 <p>For now, only the development version is available:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install development version on Github</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"DanChaltiel/autoimport"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"DanChaltiel/autoimport"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
@@ -85,52 +85,34 @@
 <p><code>{r} autoimport::import_review()</code></p>
 </div>
 <div class="section level2">
-<h2 id="known-limits">Known limits<a class="anchor" aria-label="anchor" href="#known-limits"></a>
+<h2 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a>
 </h2>
-<p><em>Call for help</em>:If someone has an idea on how to overcome some of these, please reach out!</p>
-<div class="section level3">
-<h3 id="false-negatives">False negatives<a class="anchor" aria-label="anchor" href="#false-negatives"></a>
-</h3>
-<p>Autoimport is based on <code><a href="https://rdrr.io/r/utils/sourceutils.html" class="external-link">utils::getSrcref()</a></code> and share the same limits.</p>
-<p>Therefore it wont recognize as functions and try to remove imports of:</p>
+<p>Autoimport is based on <code><a href="https://rdrr.io/r/utils/sourceutils.html" class="external-link">utils::getSrcref()</a></code> and share the same limits. Therefore, some function syntaxes are not recognized and <code>autoimport</code> will try to remove their <code>@importFrom</code> from individual functions:</p>
 <ul>
-<li><p>operators (<code>@importFrom dplyr %&gt;%</code>, <code>@importFrom rlang :=</code>, …).</p></li>
-<li><p>functions called by name (e.g. <code>my_fun</code> in <code>sapply(x, my_fun)</code>) or used inside strings (e.g. <code>glue("my_fun={my_fun(x)}")</code>).</p></li>
+<li>Operators (<code>@importFrom dplyr %&gt;%</code>, <code>@importFrom rlang :=</code>, …)</li>
+<li>Functions called by name (e.g. <code>sapply(x, my_fun))</code>
+</li>
+<li>Functions used inside strings (e.g. <code>glue("my_fun={my_fun(x)}")</code>)</li>
 </ul>
-<p>The best way to avoid this problem is to put these imports in your package-level documentation, as this file is ignored by default (due to <code>ignore_package=TRUE</code>). For that, <code><a href="https://usethis.r-lib.org/reference/use_package_doc.html" class="external-link">usethis::use_package_doc()</a></code> and <code><a href="https://usethis.r-lib.org/reference/use_pipe.html" class="external-link">usethis::use_pipe()</a></code> are your friends!</p>
+<p>To keep them imported, you should either use a prefix (<code>pkg::my_fun</code>) or import them in your package-level documentation, as this file is ignored by default (due to <code>ignore_package=TRUE</code>).</p>
+<p>For that, <code><a href="https://usethis.r-lib.org/reference/use_package_doc.html" class="external-link">usethis::use_package_doc()</a></code> and <code><a href="https://usethis.r-lib.org/reference/use_pipe.html" class="external-link">usethis::use_pipe()</a></code> are your friends!</p>
+<p>Also, note that R6 methods calls trigger a “not found” warning (WIP, see #21).</p>
 </div>
-<div class="section level3">
-<h3 id="false-positives">False positives<a class="anchor" aria-label="anchor" href="#false-positives"></a>
-</h3>
-<p>Some functions rely on packages from the <code>Suggest</code> section of <code>DESCRIPTION</code>.</p>
-<p>Unfortunately, <code>autoimport</code> cannot understand this and will try to import those function in <code>NAMESPACE</code>, causing a check failure.</p>
-<p><strong>WIP:</strong> In the future, an exclusion list will be added to remove specific function from reading or writing using <code>autoimport</code>.</p>
-</div>
-<div class="section level3">
-<h3 id="prefixes">Prefixes<a class="anchor" aria-label="anchor" href="#prefixes"></a>
-</h3>
-<p>If you need the same function from 2 different packages (e.g. <code><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">dplyr::desc()</a></code> and <code><a href="https://desc.r-lib.org/reference/desc.html" class="external-link">desc::desc()</a></code> in my case), it might cause troubles sometimes…</p>
-</div>
-<div class="section level3">
-<h3 id="reexports">Reexports<a class="anchor" aria-label="anchor" href="#reexports"></a>
-</h3>
-<p>Reexports are really annoying because they can be exported by a package while belonging to another namespace.</p>
-<p>For instance, <code>div</code> is reexported by <code>shiny</code> from <code>htmltools</code>, so autoimport will try to import it from there:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode diff"><code class="sourceCode diff"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="va">+  #' @importFrom htmltools div            </span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>   #' @importFrom rlang set_names            </span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="st">-  #' @importFrom shiny actionButton div fluidPage fluidRow observeEvent</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="va">+  #' @importFrom shiny actionButton fluidPage fluidRow observeEvent</span></span></code></pre></div>
-<p>Accepting this will cause an unneeded dependency over <code>htmltools</code>.</p>
-<p><strong>WIP:</strong> This might be manually enforced in IMPORTLIST.</p>
-</div>
+<div class="section level2">
+<h2 id="cache-system">Cache system<a class="anchor" aria-label="anchor" href="#cache-system"></a>
+</h2>
+<p>As running <code><a href="reference/autoimport.html">autoimport()</a></code> on a large package can take some time, a cache system is implemented, by default in file <code>inst/autoimport_cache.rds</code>.</p>
+<p>Any function not modified since last run should be taken from the cache, resulting on a much faster run.</p>
+<p>In some seldom cases, this can cause issues with modifications in DESCRIPTION or IMPORTLIST not being taken into account. Run <code>clean_cache()</code> to remove this file, or use <code>use_cache="write"</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="algorithm">Algorithm<a class="anchor" aria-label="anchor" href="#algorithm"></a>
 </h2>
-<p>When trying to figure out which package to import a function from, <code><a href="reference/autoimport.html">autoimport()</a></code> follow this algorithm:</p>
+<p>When trying to figure out which package to import a function from, <code><a href="reference/autoimport.html">autoimport()</a></code> follows this algorithm:</p>
 <ul>
-<li>If the function is already mentioned in NAMESPACE, use the package</li>
-<li>Else, if the function is only exported by one package, use this package</li>
+<li>If the function is prefixed with the package, ignore</li>
+<li>Else, if the function is already mentioned in NAMESPACE, use the package</li>
+<li>Else, if the function is exported by only one package, use this package</li>
 <li>Else, ask the user from which package to import the function</li>
 <li>Else, warn that the function was not found</li>
 </ul>
@@ -141,9 +123,10 @@
 </h2>
 <p>As I couldn’t find any standardized guideline about the right order of <code>roxygen2</code> tags, <code>autoimport</code> puts them:</p>
 <ul>
-<li><p>in place of the first @importFrom tag if there is one</p></li>
-<li><p><strong>WIP:</strong> just before examples if there are some</p></li>
-<li><p>just before the function call otherwise</p></li>
+<li>in place of the first @importFrom tag if there is one</li>
+<li>
+<strong>WIP:</strong> just before examples if there are some</li>
+<li>just before the function call otherwise</li>
 </ul>
 </div>
 </div>
@@ -184,7 +167,7 @@
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 <li><a href="https://CRAN.R-project.org/package=autoimport" class="external-link"><img src="https://www.r-pkg.org/badges/version/autoimport" alt="CRAN status"></a></li>
 <li><a href="https://github.com/DanChaltiel/autoimport" class="external-link"><img src="https://img.shields.io/github/last-commit/DanChaltiel/autoimport" alt="Last Commit"></a></li>
-<li><a href="https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml" class="external-link"><img src="https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
 

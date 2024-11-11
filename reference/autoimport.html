@@ -89,6 +89,16 @@ Choose which tags to add in the shiny app <code><a href="import_review.html">imp
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Mostly used for side effects. Invisibly returns a dataframe summarizing the function imports, with input arguments as attributes.</p>
     </div>
+    <div class="section level2">
+    <h2 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a></h2>
+
+
+<p>Autoimport is based on <code><a href="https://rdrr.io/r/utils/sourceutils.html" class="external-link">utils::getSrcref()</a></code> and share the same limits.
+Therefore, some function syntaxes are not recognized and <code>autoimport</code> will try to remove their <code>@importFrom</code> from individual functions:</p><ul><li><p>Operators (<code>@importFrom dplyr %&gt;%</code>, <code>@importFrom rlang :=</code>, ...)</p></li>
+<li><p>Functions called by name (e.g. <code>sapply(x, my_fun))</code></p></li>
+<li><p>Functions used inside strings (e.g. <code>glue("my_fun={my_fun(x)}")</code>)</p></li>
+</ul><p>To keep them imported, you should either use a prefix (<code>pkg::my_fun</code>) or import #' them in your package-level documentation, as this file is ignored by default (due to <code>ignore_package=TRUE</code>).</p>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
