@@ -81,6 +81,7 @@ autoimport = function(root=".",
     description_file=description_file,
     use_cache=use_cache, ask=ask, ignore_package=ignore_package,
     verbose=verbose,
+    target_dir=target_dir,
     review_dir=review_dir,
     session_info=sessionInfo()
   )

@@ -1,6 +1,4 @@
 
-# browseURL(".")
-
 # Options -------------------------------------------------------------------------------------
 
 Sys.setenv(LANGUAGE = "en")
@@ -8,9 +6,7 @@ Sys.setenv(TZ='Europe/Paris')
 
 options(
   encoding="UTF-8",
-  # warn=0, #default, stacks
-  warn=1, #immediate.=TRUE
-  # warn=2, #error
+  warn=1, #0=stacks (default), 1=immediate=TRUE, 2 =error
   rlang_backtrace_on_error = "full",
   stringsAsFactors=FALSE,
   dplyr.summarise.inform=FALSE,
@@ -35,50 +31,20 @@ shhh(library(tidyverse))
 shhh(library(rlang))
 
 
-# Namespace loading ---------------------------------------------------------------------------
-
-covr::azure
-testthat::auto_test
-knitr::all_labels
-shiny::a
-digest::sha1
-
-
 # Directories ---------------------------------------------------------------------------------
 
 test_path = function(path){
   if(!str_detect(getwd(), "testthat")){
     path = paste0("tests/testthat/", path)
   }
-  # if(!dir.exists(path) && !file.exists(path)) path = paste0("tests/testthat/", path)
-  # if(!dir.exists(path) && !file.exists(path)) stop(path)
   path
 }
 
-dir_source_save = test_path("source_save")
-dir_source = test_path("source")
-dir_output = test_path("output")
-namespace_file = test_path("inst/NAMESPACE")
-bad_namespace_file = test_path("inst/BAD_NAMESPACE")
-description_file = test_path("inst/DESCRIPTION")
-importlist_file = test_path("inst/IMPORTLIST")
-
-
 options(
-  autoimport_importlist=NULL,
   autoimport_testing_ask_save_importlist=NULL,
+  autoimport_importlist=NULL,
   autoimport_target_dir=NULL
 )
-
-if(!is_testing()){
-  options(autoimport_importlist=importlist_file)
-}
-
-
-#restart folders (doesn't work :-( )
-# unlink(glue("{dir_new}/*"), recursive=T, force=T)
-# unlink(glue("{dir_old}/*"), recursive=T, force=T)
-# file.copy(dir(dir_old_bak, full.names=TRUE), to=dir_old, overwrite=TRUE)
 
 
 # Helpers -------------------------------------------------------------------------------------
@@ -124,45 +90,44 @@ expect_not_imported = function(output, pkg, fun){
   invisible(faulty)
 }
 
-test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE){
+test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, verbose=2){
   #reset file paths
-  dir_source_save = test_path("source_save")
-  dir_source = test_path("source")
-  dir_output = test_path("output")
-  namespace_file = test_path("inst/NAMESPACE")
-  bad_namespace_file = test_path("inst/BAD_NAMESPACE")
-  description_file = test_path("inst/DESCRIPTION")
-  importlist_file = test_path("inst/IMPORTLIST")
-  cache_path = test_path("inst/autoimport_cache.rds")
-  ns = if(bad_ns) bad_namespace_file else namespace_file
+  dir_source = test_path("source") %>% normalizePath()
+  nm = paste0("autoimport_test_", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"))
+  tmp = file.path(tempdir(), nm)
+  unlink(tmp, recursive=TRUE)
+  dir.create(tmp)
+  file.copy(dir(dir_source, full.names=TRUE), to=tmp, recursive=TRUE)
+  dir(tmp, full.names=TRUE, recursive=TRUE)
+  wd = setwd(tmp)
+  on.exit(setwd(wd))
+
+  #load the whole test namespace
+  pkgload::load_all(path=tmp, helpers=FALSE, quiet=TRUE)
 
   #set options
   withr::local_options(
-    autoimport_target_dir = dir_output,
-    autoimport_importlist = importlist_file,
-    autoimport_cache_path = cache_path,
     rlang_backtrace_on_error = "full",
     autoimport_testing_ask_save_importlist = 2 #2=No, 1=Yes
   )
 
-  #load the whole test namespace
-  pkgload::load_all(path=dir_source_save, helpers=FALSE, quiet=TRUE)
-
-  #restart folders
-  unlink(glue::glue("{dir_output}/*"), recursive=TRUE, force=TRUE)
-  unlink(glue::glue("{dir_source}/*"), recursive=TRUE, force=TRUE)
-  stopifnot(length(dir(dir_source)) == 0)
-  file.copy(dir(dir_source_save, full.names=TRUE, recursive=TRUE), to=dir_source, overwrite=TRUE)
-
   #run
-  autoimport(files=files,
-             pkg_name="autoimport_test",
-             ignore_package=TRUE,
-             use_cache=use_cache,
-             namespace_file=ns,
-             description_file=description_file,
-             ask=FALSE, verbose=2)
+  ns = if(bad_ns) "BAD_NAMESPACE" else "NAMESPACE"
+  autoimport(
+    root=tmp,
+    files=files,
+    ignore_package=TRUE,
+    use_cache=use_cache,
+    namespace_file=ns,
+    ask=FALSE,
+    verbose=verbose
+  )
+
 }
+
+
+
+
 
 condition_overview = function(expr){
   tryCatch2(expr) %>% attr("overview")

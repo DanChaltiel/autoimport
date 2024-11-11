@@ -1,10 +1,27 @@
 
+
 test_that("autoimport works", {
-  test_autoimport(files=test_path("source/sample_funs.R")) %>%
+  ai = test_autoimport(files="sample_funs.R",
+                       verbose=0) %>%
     suppressMessages()
 
-  #test
-  out1 = readLines(test_path("output/sample_funs.R"))
+
+  #*WARNING* loading a library before running tests manually can cause
+  #namespace problems with additional imports. For instance, run `library(broom)`
+  # session_info = attr(ai, "session_info")
+  # expect_false("broom" %in% names(session_info$otherPkgs))
+
+
+  #test attributes: attributes(ai) %>% names()
+  review_dir = attr(ai, "review_dir")
+  expect_true(dir.exists(review_dir))
+  target_dir = attr(ai, "target_dir")
+  target_file = file.path(target_dir, "sample_funs.R")
+  expect_true(file.exists(target_dir))
+
+
+  #test output
+  out1 = readLines(target_file)
 
   #private functions, should not be imported
   expect_not_imported(out1, "dplyr", "mutate")
@@ -33,7 +50,6 @@ test_that("autoimport works", {
   #leave trailing comment
   expect_in(c("#this is", "#a trailing comment"), out1)
 })
-
 
 
 
