@@ -2,8 +2,12 @@
 
 <!-- badges: start -->
 
-[![Package-License](http://img.shields.io/badge/license-GPL--3-brightgreen.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html) [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![CRAN status](https://www.r-pkg.org/badges/version/autoimport)](https://CRAN.R-project.org/package=autoimport) [![Last Commit](https://img.shields.io/github/last-commit/DanChaltiel/autoimport)](https://github.com/DanChaltiel/autoimport) [![minimal R version](https://img.shields.io/badge/R-%E2%89%A53.1-blue.svg)](https://cran.r-project.org/) <!--[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/grand-total/autoimport?color=blue)](https://r-pkg.org/pkg/autoimport)  -->
-
+[![Package-License](http://img.shields.io/badge/license-GPL--3-brightgreen.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html) 
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) 
+[![CRAN status](https://www.r-pkg.org/badges/version/autoimport)](https://CRAN.R-project.org/package=autoimport) 
+[![Last Commit](https://img.shields.io/github/last-commit/DanChaltiel/autoimport)](https://github.com/DanChaltiel/autoimport)
+[![R-CMD-check](https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml)
+<!--[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/grand-total/autoimport?color=blue)](https://r-pkg.org/pkg/autoimport)  -->
 <!-- badges: end -->
 
 `autoimport` is a package designed to easily add `@importFrom` roxygen tags to all your functions.
@@ -75,7 +79,7 @@ Unfortunately, `autoimport` cannot understand this and will try to import those 
 
 ### Prefixes
 
-If you need the same function from 2 different packages (e.g. `dplyr::desc()` and `desc::desc()` in my case), it migght cause troubles sometimes...
+If you need the same function from 2 different packages (e.g. `dplyr::desc()` and `desc::desc()` in my case), it might cause troubles sometimes...
 
 
 ### Reexports
