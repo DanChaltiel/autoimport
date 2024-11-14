@@ -16,14 +16,14 @@ autoimport_ask = function(data_imports, ns, importlist_path, verbose){
     distinct(fun, pkg) %>%
     left_join(pref_importlist, by="fun")
 
-  if(nrow(unsure_funs)==0) return(data_imports)
-
-  if(verbose>0) cli_h1("Attributing")
-  # rtn = list()
   defined_funs = unsure_funs %>%
     filter(!is.na(pref_pkg))
   undefined_funs = unsure_funs %>%
     filter(is.na(pref_pkg))
+
+  if(verbose>0 && nrow(unsure_funs)>0){
+    cli_h1("Attributing")
+  }
 
   if(verbose>0 && nrow(defined_funs)>0){
     cli_inform(c(i="Automatically attributing {nrow(defined_funs)} function import{?s}
