@@ -7,7 +7,7 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/autoimport)](https://CRAN.R-project.org/package=autoimport) 
 [![Last Commit](https://img.shields.io/github/last-commit/DanChaltiel/autoimport)](https://github.com/DanChaltiel/autoimport)
 [![R-CMD-check](https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml)
-<!--[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/grand-total/autoimport?color=blue)](https://r-pkg.org/pkg/autoimport)  -->
+[![R-CMD-check](https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `autoimport` is a package designed to easily add `@importFrom` roxygen tags to all your functions.
@@ -41,9 +41,10 @@ pak::pak("DanChaltiel/autoimport")
 
 ## Getting started
 
-Simply run the function!
+Simply load the package and run the function!
 
 ```{r}
+devtools::load_all(".")
 autoimport::autoimport()
 ```
 
