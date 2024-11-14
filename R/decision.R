@@ -115,7 +115,7 @@ review_app = function(data_files){
 
     shiny::observeEvent(input$accept, {
       cli_inform(c(">"="Accepting modification of '{.file {old_path[[i()]]}}'"))
-      fs::file_move(new_path[[i()]], old_path[[i()]])
+      file_move(new_path[[i()]], old_path[[i()]])
       update_cases()
     })
     shiny::observeEvent(input$skip, {
