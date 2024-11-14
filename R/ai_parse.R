@@ -17,6 +17,7 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
                             deps, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
+
   cache = if(file_exists(cache_path)) readRDS(cache_path) else list()
   read_from_cache = "read" %in% use_cache && !is.null(cache)
 
@@ -67,6 +68,7 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
     })
 
   if("write" %in% use_cache){
+    dir_create(path_dir(cache_path))
     saveRDS(cache, file=cache_path)
   }
 
