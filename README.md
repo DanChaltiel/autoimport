@@ -56,6 +56,11 @@ Then, you can see the diff and accept the changes using a shiny widget:
 autoimport::import_review()
 ```
 
+Note that `autoimport` will guess the potential source of your functions based on the packages listed as dependencies in DESCRIPTION and the packages currently loaded in your environment (e.g. via `library()`). 
+
+Also, `load_all(".")` is required for autoimport to have access to the package's private functions, for example so that `dplyr::filter()` cannot mask `yourpackage:::filter()`.
+
+
 
 ## Limitations
 
