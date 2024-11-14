@@ -21,6 +21,7 @@
 #' @export
 #' @importFrom cli cli_inform
 #' @importFrom rlang check_installed
+#' @importFrom fs file_move
 import_review = function(source_path="R/",
                          output_path=get_target_dir(),
                          background=getOption("autoimport_background", FALSE)) {
@@ -114,7 +115,7 @@ review_app = function(data_files){
 
     shiny::observeEvent(input$accept, {
       cli_inform(c(">"="Accepting modification of '{.file {old_path[[i()]]}}'"))
-      file.rename(new_path[[i()]], old_path[[i()]])
+      file_move(new_path[[i()]], old_path[[i()]])
       update_cases()
     })
     shiny::observeEvent(input$skip, {
