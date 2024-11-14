@@ -6,6 +6,7 @@
 #' Returns nothing of use.
 #'
 #' @importFrom cli cli_h1 cli_inform
+#' @importFrom dplyr setdiff
 #' @importFrom fs path
 #' @importFrom purrr imap map
 #' @importFrom stringr str_ends

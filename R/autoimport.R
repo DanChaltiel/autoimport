@@ -26,6 +26,7 @@
 #' To keep them imported, you should either use a prefix (`pkg::my_fun`) or import them in your package-level documentation, as this file is ignored by default (with `ignore_package=TRUE`).
 #'
 #' @importFrom cli cli_abort cli_h1 cli_inform
+#' @importFrom dplyr setdiff
 #' @importFrom fs file_exists path path_dir
 #' @importFrom purrr map walk
 #' @importFrom rlang check_installed current_env set_names

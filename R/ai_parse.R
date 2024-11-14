@@ -174,7 +174,7 @@ parse_function = function(ref, fun_name, pkg_name, ns, deps, verbose){
 #' @param ref a ref
 #' @param pkg_name package name (character)
 #' @param ns result of `parse_namespace()`
-#' @importFrom dplyr arrange bind_rows desc filter lag lead mutate pull select starts_with
+#' @importFrom dplyr arrange bind_rows desc filter lag lead mutate pull select setdiff starts_with
 #' @importFrom purrr map map_int
 #' @importFrom rlang set_names
 #' @importFrom stringr str_detect str_subset
