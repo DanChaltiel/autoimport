@@ -11,15 +11,15 @@
 #'
 #' @importFrom cli cli_inform
 #' @importFrom dplyr pull
-#' @importFrom fs file_exists path_dir
+#' @importFrom fs dir_create file_create file_exists path_dir
 #' @importFrom tibble deframe
 #' @importFrom utils modifyList
 update_importlist = function(imports, path=NULL){
   if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
   # path = normalizePath(path, mustWork = FALSE)
   if(!file_exists(path)){
-    dir.create(path_dir(path), showWarnings=FALSE)
-    file.create(path)
+    dir_create(path_dir(path))
+    file_create(path)
   }
   old_imports = get_importlist(path) %>% deframe() %>% as.list()
   new_imports = imports %>% pull(pref_pkg, name=fun) %>% as.list()

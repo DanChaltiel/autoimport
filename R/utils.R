@@ -199,12 +199,12 @@ get_R_dir = function(root="."){
   dir(path, pattern="\\.[Rr]$|", full.names=TRUE)
 }
 #' @noRd
-#' @importFrom fs path path_temp
+#' @importFrom fs dir_create path path_temp
 get_target_dir = function(path=NULL){
   tmp = path_temp("autoimport_temp_target_dir")
   d = getOption("autoimport_target_dir", tmp)
   if(!is.null(path)) d = path(d, path)
-  dir.create(d, recursive=TRUE, showWarnings=FALSE)
+  dir_create(d)
   d
 }
 #' @noRd

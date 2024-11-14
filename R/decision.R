@@ -21,7 +21,6 @@
 #' @export
 #' @importFrom cli cli_inform
 #' @importFrom rlang check_installed
-#' @importFrom fs file_move
 import_review = function(source_path="R/",
                          output_path=get_target_dir(),
                          background=getOption("autoimport_background", FALSE)) {
@@ -79,6 +78,7 @@ review_files = function(source_path="R/", output_path=get_target_dir()){
 
 
 #' @importFrom cli cli_inform
+#' @importFrom fs file_move
 #' @importFrom rlang set_names
 #' @noRd
 review_app = function(data_files){

@@ -99,7 +99,7 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, verb
     nm = paste0("autoimport_test_", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"))
     root = path(tempdir(), nm)
     unlink(root, recursive=TRUE)
-    dir.create(root)
+    dir_create(root)
     file.copy(dir(dir_source, full.names=TRUE), to=root, recursive=TRUE)
     # dir(root, full.names=TRUE, recursive=TRUE)
   }

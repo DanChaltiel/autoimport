@@ -8,7 +8,7 @@
 #'
 #' @importFrom cli cli_h1 cli_inform
 #' @importFrom dplyr as_tibble
-#' @importFrom fs file_exists
+#' @importFrom fs dir_create file_exists path_dir
 #' @importFrom purrr imap list_rbind map map_dbl map_depth
 #' @importFrom rlang hash hash_file
 #' @noRd
