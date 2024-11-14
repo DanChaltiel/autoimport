@@ -83,6 +83,8 @@
 <p>The first run will take some time, but a cache system is implemented so that next runs are faster.</p>
 <p>Then, you can see the diff and accept the changes using a shiny widget:</p>
 <p><code>{r} autoimport::import_review()</code></p>
+<p>Note that <code>autoimport</code> will guess the potential source of your functions based on the packages listed as dependencies in DESCRIPTION and the packages currently loaded in your environment (e.g. via <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library()</a></code>).</p>
+<p>Also, <code>load_all(".")</code> is required for autoimport to have access to the package’s private functions, for example so that <code><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">dplyr::filter()</a></code> cannot mask <code>yourpackage:::filter()</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a>
