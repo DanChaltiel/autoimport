@@ -78,8 +78,8 @@
 <div class="section level2">
 <h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
-<p>Simply run the function!</p>
-<p><code>{r} autoimport::autoimport()</code></p>
+<p>Simply load the package and run the function!</p>
+<p><code>{r} devtools::load_all(".") autoimport::autoimport()</code></p>
 <p>The first run will take some time, but a cache system is implemented so that next runs are faster.</p>
 <p>Then, you can see the diff and accept the changes using a shiny widget:</p>
 <p><code>{r} autoimport::import_review()</code></p>
@@ -168,6 +168,7 @@
 <li><a href="https://CRAN.R-project.org/package=autoimport" class="external-link"><img src="https://www.r-pkg.org/badges/version/autoimport" alt="CRAN status"></a></li>
 <li><a href="https://github.com/DanChaltiel/autoimport" class="external-link"><img src="https://img.shields.io/github/last-commit/DanChaltiel/autoimport" alt="Last Commit"></a></li>
 <li><a href="https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml" class="external-link"><img src="https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
 
