@@ -40,8 +40,8 @@ autoimport = function(root=".",
   ns = parse_namespace(namespace_file)
   importlist_path = getOption("autoimport_importlist", path(root, "inst/IMPORTLIST"))
   cache_path = get_cache_path(root)
-  if(!file_exists(namespace_file)) namespace_file = path(root, namespace_file)
-  if(!file_exists(description_file)) description_file = path(root, description_file)
+  if(file_exists(path(root, namespace_file))) namespace_file = path(root, namespace_file)
+  if(file_exists(path(root, description_file))) description_file = path(root, description_file)
   if(!all(file_exists(files))) files = path(root, "R", files)
 
   description = desc::desc(file=description_file)
@@ -94,6 +94,7 @@ autoimport = function(root=".",
     files=unname(files),
     namespace_file=namespace_file,
     description_file=description_file,
+    pkg_name=pkg_name,
     use_cache=use_cache, ignore_package=ignore_package,
     verbose=verbose,
 
