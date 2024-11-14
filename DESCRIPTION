@@ -20,6 +20,7 @@ Imports:
     diffviewer,
     digest,
     dplyr,
+    fs,
     glue,
     purrr,
     readr,

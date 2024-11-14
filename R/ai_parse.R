@@ -8,6 +8,7 @@
 #'
 #' @importFrom cli cli_h1 cli_inform
 #' @importFrom dplyr as_tibble
+#' @importFrom fs file_exists
 #' @importFrom purrr imap list_rbind map map_dbl map_depth
 #' @importFrom rlang hash hash_file
 #' @noRd
@@ -16,7 +17,7 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
                             deps, verbose) {
 
   if(verbose>0) cli_h1("Parsing")
-  cache = if(file.exists(cache_path) && !dir.exists(cache_path)) readRDS(cache_path) else list()
+  cache = if(file_exists(cache_path)) readRDS(cache_path) else list()
   read_from_cache = "read" %in% use_cache && !is.null(cache)
 
   import_list = ref_list %>%

@@ -26,8 +26,9 @@ assert = function(x, msg=NULL){
 #' assert_file_exists(c("R/assertions.R", "R/autoimport.R"))
 #' assert_file_exists(c("R/assertions.SAS", "R/autoimport.SAS", "R/autoimport.R"))
 #' @importFrom cli cli_abort
+#' @importFrom fs file_exists
 assert_file_exists = function(x, msg=NULL){
-  not_found = x[!file.exists(x)]
+  not_found = x[!file_exists(x)]
   if(length(not_found)>0){
     cli_abort("File{?s} do{?es/} not exist: {.file {not_found}}")
   }

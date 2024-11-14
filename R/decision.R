@@ -54,6 +54,7 @@ import_review = function(source_path="R/",
 
 
 #' @importFrom digest digest
+#' @importFrom fs file_exists path
 #' @importFrom purrr map2_lgl
 #' @importFrom tibble tibble
 #' @noRd
@@ -61,9 +62,9 @@ import_review = function(source_path="R/",
 review_files = function(source_path="R/", output_path=get_target_dir()){
   old_files = dir(source_path, full.names=TRUE)
   assert_file_exists(old_files)
-  new_files = file.path(output_path, basename(old_files))
-  old_files = old_files[file.exists(new_files)]
-  new_files = new_files[file.exists(new_files)]
+  new_files = path(output_path, basename(old_files))
+  old_files = old_files[file_exists(new_files)]
+  new_files = new_files[file_exists(new_files)]
   changed = map2_lgl(old_files, new_files, ~{
     !identical(digest(.x, file=TRUE), digest(.y, file=TRUE))
   })

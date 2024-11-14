@@ -26,6 +26,7 @@
 #' To keep them imported, you should either use a prefix (`pkg::my_fun`) or import them in your package-level documentation, as this file is ignored by default (with `ignore_package=TRUE`).
 #'
 #' @importFrom cli cli_abort cli_h1 cli_inform
+#' @importFrom fs file_exists path path_dir
 #' @importFrom purrr map walk
 #' @importFrom rlang check_installed current_env set_names
 #' @importFrom utils sessionInfo
@@ -37,11 +38,11 @@ autoimport = function(root=".",
                       verbose=2){
   target_dir = get_target_dir()
   ns = parse_namespace(namespace_file)
-  importlist_path = getOption("autoimport_importlist", file.path(root, "inst/IMPORTLIST"))
+  importlist_path = getOption("autoimport_importlist", path(root, "inst/IMPORTLIST"))
   cache_path = get_cache_path(root)
-  if(!file.exists(namespace_file)) namespace_file = file.path(root, namespace_file)
-  if(!file.exists(description_file)) description_file = file.path(root, description_file)
-  if(!all(file.exists(files))) files = file.path(root, "R", files)
+  if(!file_exists(namespace_file)) namespace_file = path(root, namespace_file)
+  if(!file_exists(description_file)) description_file = path(root, description_file)
+  if(!all(file_exists(files))) files = path(root, "R", files)
 
   description = desc::desc(file=description_file)
   deps = description$get_deps()
@@ -58,8 +59,8 @@ autoimport = function(root=".",
     cli_inform(c("Autoimporting for package {.pkg {pkg_name}} at {.path {root}}"))
     cli_inform(c(v="Registered namespaces of {length(ns_loading)} dependencies."))
   }
-  if(any(!file.exists(files))){
-    cli_abort("Couldn't find file{?s} {.file {files[!file.exists(files)]}}")
+  if(any(!file_exists(files))){
+    cli_abort("Couldn't find file{?s} {.file {files[!file_exists(files)]}}")
   }
 
   files = set_names(files)
@@ -76,8 +77,8 @@ autoimport = function(root=".",
                               ignore_package, pkg_name, target_dir, verbose)
   if(verbose>0) cli_h1("Finished")
 
-  data_files = review_files(dirname(files))
-  review_dir = unique(dirname(files))[1]
+  data_files = review_files(path_dir(files))
+  review_dir = unique(path_dir(files))[1]
   if(verbose>0){
     if(!any(data_files$changed)){
       cli_inform(c(v="No changes to review."))

@@ -56,7 +56,7 @@ poor_diff = function(file){
   file_old = test_path("source", file)
   file_new = test_path("output", file)
   assert_file_exists(file_old)
-  if(!file.exists(file_new)) return(NULL)
+  if(!file_exists(file_new)) return(NULL)
 
   a = readLines(file_old)
   b = readLines(file_new)
@@ -97,7 +97,7 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, verb
   if(is.null(root)){
     dir_source = test_path("source") %>% normalizePath()
     nm = paste0("autoimport_test_", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"))
-    root = file.path(tempdir(), nm)
+    root = path(tempdir(), nm)
     unlink(root, recursive=TRUE)
     dir.create(root)
     file.copy(dir(dir_source, full.names=TRUE), to=root, recursive=TRUE)
@@ -129,7 +129,7 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, verb
 
 }
 
-
+#diapo 3 donc en non-binding on est surpuissant ou c'est juste une paramétrisation ?
 
 
 

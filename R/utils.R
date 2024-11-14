@@ -179,9 +179,10 @@ exists2 = function(x) {
 
 
 
+#' @importFrom fs path_dir
 #' @importFrom stringr regex str_remove
 #' @noRd
-get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
+get_new_file = function(file, path=path_dir(file), prefix="", suffix=""){
   f = str_remove(basename(file), regex("\\.[rR]"))
   rtn=paste0(path, "/", prefix, f, suffix, ".R")
   if(rtn==file){
@@ -192,21 +193,24 @@ get_new_file = function(file, path=dirname(file), prefix="", suffix=""){
 
 
 #' @noRd
+#' @importFrom fs path
 get_R_dir = function(root="."){
-  path = file.path(root, "R")
+  path = path(root, "R")
   dir(path, pattern="\\.[Rr]$|", full.names=TRUE)
 }
 #' @noRd
+#' @importFrom fs path path_temp
 get_target_dir = function(path=NULL){
-  tmp = file.path(tempdir(), "autoimport_temp_target_dir")
+  tmp = path_temp("autoimport_temp_target_dir")
   d = getOption("autoimport_target_dir", tmp)
-  if(!is.null(path)) d = file.path(d, path)
+  if(!is.null(path)) d = path(d, path)
   dir.create(d, recursive=TRUE, showWarnings=FALSE)
   d
 }
 #' @noRd
+#' @importFrom fs path
 get_cache_path = function(root="."){
-  getOption("autoimport_cache_path", file.path(root, "inst/autoimport_cache.rds"))
+  getOption("autoimport_cache_path", path(root, "inst/autoimport_cache.rds"))
 }
 
 #' @noRd

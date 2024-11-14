@@ -11,13 +11,14 @@
 #'
 #' @importFrom cli cli_inform
 #' @importFrom dplyr pull
+#' @importFrom fs file_exists path_dir
 #' @importFrom tibble deframe
 #' @importFrom utils modifyList
 update_importlist = function(imports, path=NULL){
   if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
   # path = normalizePath(path, mustWork = FALSE)
-  if(!file.exists(path)){
-    dir.create(dirname(path), showWarnings=FALSE)
+  if(!file_exists(path)){
+    dir.create(path_dir(path), showWarnings=FALSE)
     file.create(path)
   }
   old_imports = get_importlist(path) %>% deframe() %>% as.list()
@@ -37,12 +38,13 @@ update_importlist = function(imports, path=NULL){
 
 
 #' @rdname update_importlist
+#' @importFrom fs file_exists
 #' @importFrom purrr map map_chr
 #' @importFrom stringr str_split_1 str_squish str_starts
 #' @importFrom tibble tibble
 get_importlist = function(path=NULL){
   if(is.null(path)) path = getOption("autoimport_importlist", "inst/IMPORTLIST")
-  if(!file.exists(path)) return(tibble(fun=NA, pref_pkg=NA))
+  if(!file_exists(path)) return(tibble(fun=NA, pref_pkg=NA))
 
   lines = readLines(path, warn=FALSE, encoding="UTF-8") %>%
     subset(.!="" & !str_starts(., "#")) %>%

@@ -16,8 +16,8 @@ test_that("autoimport works", {
   review_dir = attr(ai, "review_dir")
   expect_true(dir.exists(review_dir))
   target_dir = attr(ai, "target_dir")
-  target_file = file.path(target_dir, "sample_funs.R")
-  expect_true(file.exists(target_dir))
+  target_file = path(target_dir, "sample_funs.R")
+  expect_true(file_exists(target_dir))
 
 
   #test output

@@ -13,7 +13,7 @@ test_that("autoimport cache works", {
   expect_setequal(ai_1$ai_source, "file")
   root = attr(ai_1, "root")
   cache_path_1 = attr(ai_1, "cache_path")
-  expect_true(file.exists(cache_path_1))
+  expect_true(file_exists(cache_path_1))
 
 
   #STEP 2: read cache from file

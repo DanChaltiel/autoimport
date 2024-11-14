@@ -6,6 +6,7 @@
 #' Returns nothing of use.
 #'
 #' @importFrom cli cli_h1 cli_inform
+#' @importFrom fs path
 #' @importFrom purrr imap map
 #' @importFrom stringr str_ends
 #' @importFrom tibble tibble
@@ -29,7 +30,7 @@ autoimport_write = function(data_imports, ref_list, lines_list, ignore_package,
     split(list(.$file)) %>%
     map(~{
       cur_file = unique(.x$file)
-      target_file = file.path(target_dir, basename(cur_file))
+      target_file = path(target_dir, basename(cur_file))
       stopifnot(length(cur_file)==1)
       lines = lines_list[[cur_file]]
       comments_refs = ref_list[[cur_file]]
