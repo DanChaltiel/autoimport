@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">autoimport</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,7 @@
 </h1></div>
 <!-- badges: start -->
 
+<!-- badges: end -->
 <p><code>autoimport</code> is a package designed to easily add <code>@importFrom</code> roxygen tags to all your functions.</p>
 <div class="section level2">
 <h2 id="concept">Concept<a class="anchor" aria-label="anchor" href="#concept"></a>
@@ -79,12 +80,22 @@
 <h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
 <p>Simply load the package and run the function!</p>
-<p><code>{r} devtools::load_all(".") autoimport::autoimport()</code></p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="st">"."</span><span class="op">)</span></span>
+<span><span class="fu">autoimport</span><span class="fu">::</span><span class="fu"><a href="reference/autoimport.html">autoimport</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The first run will take some time, but a cache system is implemented so that next runs are faster.</p>
-<p>Then, you can see the diff and accept the changes using a shiny widget:</p>
-<p><code>{r} autoimport::import_review()</code></p>
-<p>Note that <code>autoimport</code> will guess the potential source of your functions based on the packages listed as dependencies in DESCRIPTION and the packages currently loaded in your environment (e.g. via <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library()</a></code>).</p>
-<p>Also, <code>load_all(".")</code> is required for autoimport to have access to the package’s private functions, for example so that <code><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">dplyr::filter()</a></code> cannot mask <code>yourpackage:::filter()</code>.</p>
+<p>Then, you can see the diff and accept the changes using the shiny widget:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">autoimport</span><span class="fu">::</span><span class="fu"><a href="reference/import_review.html">import_review</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="important-notes">Important notes<a class="anchor" aria-label="anchor" href="#important-notes"></a>
+</h2>
+<ul>
+<li><p><code>autoimport</code> will guess the potential source of your functions based on (1) the packages currently loaded in your environment (e.g. via <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library()</a></code>), and (2) the packages listed as dependencies in DESCRIPTION.</p></li>
+<li><p><code>load_all(".")</code> is required for autoimport to have access to the package’s private functions, for example so that <code><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">dplyr::filter()</a></code> cannot mask <code>yourpackage:::filter()</code>.</p></li>
+<li><p>Some package guesses are bound to be wrong, in which case you should use <code><a href="https://usethis.r-lib.org/reference/use_import_from.html" class="external-link">usethis::use_import_from()</a></code>. See “Limitations” below for more details.</p></li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a>
@@ -97,7 +108,7 @@
 <li>Functions used inside strings (e.g. <code>glue("my_fun={my_fun(x)}")</code>)</li>
 </ul>
 <p>To keep them imported, you should either use a prefix (<code>pkg::my_fun</code>) or import them in your package-level documentation, as this file is ignored by default (due to <code>ignore_package=TRUE</code>).</p>
-<p>For that, <code><a href="https://usethis.r-lib.org/reference/use_package_doc.html" class="external-link">usethis::use_package_doc()</a></code> and <code><a href="https://usethis.r-lib.org/reference/use_pipe.html" class="external-link">usethis::use_pipe()</a></code> are your friends!</p>
+<p>For that, <code><a href="https://usethis.r-lib.org/reference/use_import_from.html" class="external-link">usethis::use_import_from()</a></code> and <code><a href="https://usethis.r-lib.org/reference/use_pipe.html" class="external-link">usethis::use_pipe()</a></code> are your friends!</p>
 <p>Also, note that R6 methods calls trigger a “not found” warning (WIP, see #21).</p>
 </div>
 <div class="section level2">
@@ -125,9 +136,7 @@
 </h2>
 <p>As I couldn’t find any standardized guideline about the right order of <code>roxygen2</code> tags, <code>autoimport</code> puts them:</p>
 <ul>
-<li>in place of the first @importFrom tag if there is one</li>
-<li>
-<strong>WIP:</strong> just before examples if there are some</li>
+<li>in place of the first <code>@importFrom</code> tag if there is one</li>
 <li>just before the function call otherwise</li>
 </ul>
 </div>
@@ -166,10 +175,9 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="http://www.gnu.org/licenses/gpl-3.0.html" class="external-link"><img src="http://img.shields.io/badge/license-GPL--3-brightgreen.svg?style=flat" alt="Package-License"></a></li>
-<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
+<li><a href="https://lifecycle.r-lib.org/articles/stages.html#stable" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Lifecycle: stable"></a></li>
 <li><a href="https://CRAN.R-project.org/package=autoimport" class="external-link"><img src="https://www.r-pkg.org/badges/version/autoimport" alt="CRAN status"></a></li>
 <li><a href="https://github.com/DanChaltiel/autoimport" class="external-link"><img src="https://img.shields.io/github/last-commit/DanChaltiel/autoimport" alt="Last Commit"></a></li>
-<li><a href="https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml" class="external-link"><img src="https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
