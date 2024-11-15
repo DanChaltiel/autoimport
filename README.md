@@ -3,11 +3,11 @@
 <!-- badges: start -->
 
 [![Package-License](http://img.shields.io/badge/license-GPL--3-brightgreen.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html) 
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) 
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable) 
 [![CRAN status](https://www.r-pkg.org/badges/version/autoimport)](https://CRAN.R-project.org/package=autoimport) 
 [![Last Commit](https://img.shields.io/github/last-commit/DanChaltiel/autoimport)](https://github.com/DanChaltiel/autoimport)
-[![R-CMD-check](https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/DanChaltiel/autoimport/actions/workflows/check-standard.yaml)
 [![R-CMD-check](https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/DanChaltiel/autoimport/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 `autoimport` is a package designed to easily add `@importFrom` roxygen tags to all your functions.
@@ -39,41 +39,45 @@ For now, only the development version is available:
 pak::pak("DanChaltiel/autoimport")
 ```
 
+
 ## Getting started
 
 Simply load the package and run the function!
 
-```{r}
+``` r
 devtools::load_all(".")
 autoimport::autoimport()
 ```
 
 The first run will take some time, but a cache system is implemented so that next runs are faster.
 
-Then, you can see the diff and accept the changes using a shiny widget:
+Then, you can see the diff and accept the changes using the shiny widget:
 
-```{r}
+``` r
 autoimport::import_review()
 ```
 
-Note that `autoimport` will guess the potential source of your functions based on the packages listed as dependencies in DESCRIPTION and the packages currently loaded in your environment (e.g. via `library()`). 
 
-Also, `load_all(".")` is required for autoimport to have access to the package's private functions, for example so that `dplyr::filter()` cannot mask `yourpackage:::filter()`.
+## Important notes
 
+-   `autoimport` will guess the potential source of your functions based on (1) the packages currently loaded in your environment (e.g. via `library()`), and (2) the packages listed as dependencies in DESCRIPTION.
+
+-   `load_all(".")` is required for autoimport to have access to the package's private functions, for example so that `dplyr::filter()` cannot mask `yourpackage:::filter()`.
+
+-   Some package guesses are bound to be wrong, in which case you should use `usethis::use_import_from()`. See "Limitations" below for more details.
 
 
 ## Limitations
 
-Autoimport is based on `utils::getSrcref()` and share the same limits.
-Therefore, some function syntaxes are not recognized and `autoimport` will try to remove their `@importFrom` from individual functions:
+Autoimport is based on `utils::getSrcref()` and share the same limits. Therefore, some function syntaxes are not recognized and `autoimport` will try to remove their `@importFrom` from individual functions:
 
-- Operators (`@importFrom dplyr %>%`, `@importFrom rlang :=`, ...)
-- Functions called by name (e.g. `sapply(x, my_fun))` 
-- Functions used inside strings (e.g. `glue("my_fun={my_fun(x)}")`)  
+-   Operators (`@importFrom dplyr %>%`, `@importFrom rlang :=`, ...)
+-   Functions called by name (e.g. `sapply(x, my_fun))`
+-   Functions used inside strings (e.g. `glue("my_fun={my_fun(x)}")`)
 
-To keep them imported, you should either use a prefix (`pkg::my_fun`) or import them in your package-level documentation, as this file is ignored by default (due to `ignore_package=TRUE`). 
+To keep them imported, you should either use a prefix (`pkg::my_fun`) or import them in your package-level documentation, as this file is ignored by default (due to `ignore_package=TRUE`).
 
-For that, `usethis::use_package_doc()` and `usethis::use_pipe()` are your friends!
+For that, `usethis::use_import_from()` and `usethis::use_pipe()` are your friends!
 
 Also, note that R6 methods calls trigger a "not found" warning (WIP, see #21).
 
@@ -104,6 +108,5 @@ Note that this algorithm is still a bit experimental and that I could only test 
 
 As I couldn't find any standardized guideline about the right order of `roxygen2` tags, `autoimport` puts them:
 
--   in place of the first @importFrom tag if there is one
--   **WIP:** just before examples if there are some
+-   in place of the first `@importFrom` tag if there is one
 -   just before the function call otherwise
