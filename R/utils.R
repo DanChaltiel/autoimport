@@ -197,7 +197,7 @@ get_new_file = function(file, path=path_dir(file), prefix="", suffix=""){
 #' @importFrom fs path
 get_R_dir = function(root="."){
   path = path(root, "R")
-  dir(path, pattern="\\.[Rr]$|", full.names=TRUE)
+  dir(path, pattern="\\.[Rr]$", full.names=TRUE)
 }
 #' @noRd
 #' @importFrom fs dir_create path path_temp
