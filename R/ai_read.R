@@ -34,24 +34,33 @@ autoimport_read = function(lines_list, verbose) {
 
 #' @importFrom cli cli_h2 cli_warn
 #' @importFrom dplyr arrange filter mutate rename
+#' @importFrom glue glue_data
 #' @importFrom purrr map
 #' @importFrom stringr str_detect
 #' @importFrom utils capture.output stack
 #' @noRd
 #' @keywords internal
 warn_duplicated = function(ref_list, verbose) {
+  ref_list %>% map(~map(.x, ~attr(.x, "lines")))
   dups = ref_list %>%
-    map(names) %>% stack() %>%
-    filter(values %in% values[duplicated(values)],
-           !str_detect(values, "^unnamed_\\d+$")) %>%
-    rename(fun=values, file=ind) %>%
+    map(~{
+      lines = map(.x, ~attr(.x, "lines"))
+      tibble(fun=names(.x), first_line=map_dbl(lines, 1), last_line=map_dbl(lines, 2))
+    }) %>%
+    list_rbind(names_to="file") %>%
+    filter(fun %in% fun[duplicated(fun)],
+           !str_detect(fun, "^unnamed_\\d+$")) %>%
     mutate(fun=paste0(fun, "()"), file=basename(as.character(file))) %>%
     arrange(fun)
+
   if(nrow(dups)>0){
+    dup_list = dups %>%
+      glue_data("{fun} in {file} (lines {first_line}-{last_line})") %>%
+      set_names("*")
     if(verbose>0) cli_h2("Warning - Duplicates")
-    cli_warn(c("x"="There is several functions with the same name:"),
+    cli_warn(c("x"="There is several functions with the same name."),
              class="autoimport_duplicate_warn")
-    if(verbose>0) message(paste0(capture.output(dups), collapse = "\n"))
+    if(verbose>0) cli_inform(dup_list)
   }
   invisible(TRUE)
 }
