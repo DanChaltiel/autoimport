@@ -20,13 +20,16 @@
 #' @source inspired by [testthat::snapshot_review()]
 #' @export
 #' @importFrom cli cli_inform
+#' @importFrom dplyr arrange desc
 #' @importFrom rlang check_installed
+#' @importFrom stringr str_ends
 import_review = function(source_path="R/",
                          output_path=get_target_dir(),
                          background=getOption("autoimport_background", FALSE)) {
   check_installed("shiny", "for `import_review()` to work")
   check_installed("diffviewer", "for `import_review()` to work")
-  data_files=review_files(source_path, output_path)
+  data_files = review_files(source_path, output_path) |>
+    arrange(desc(str_ends(old_files, "package.[Rr]")))
 
   if(!any(data_files$changed)){
     cli_inform("No changes to review.")
