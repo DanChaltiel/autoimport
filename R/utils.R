@@ -39,6 +39,7 @@ comments = function (refs) {
     last_byte = refs[[i]][4]
     lloc = c(first_line, first_byte=1, last_line, last_byte)
     com[[i]] = srcref(srcfile, lloc)
+    attr(com[[i]], "lines") = c(first_line, last_line)
   }
   com
 }
