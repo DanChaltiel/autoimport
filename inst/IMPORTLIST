@@ -1,5 +1,6 @@
 as_tibble = dplyr
 attr = base
+check_dots_empty = rlang
 desc = dplyr
 dir_create = fs
 div = shiny
