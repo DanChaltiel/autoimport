@@ -30,12 +30,12 @@ autoimport_write = function(data_imports, ref_list, lines_list, location,
   }
 }
 
+
 #' @noRd
 #' @keywords internal
 #' @importFrom dplyr filter mutate
 #' @importFrom fs path
 #' @importFrom glue glue
-#' @importFrom readr read_lines write_lines
 #' @importFrom stringr str_ends
 .autoimport_write_lvl_pkg = function(data_imports, ref_list, lines_list,
                                      ignore_package, pkg_name, target_dir, verbose) {
@@ -49,13 +49,14 @@ autoimport_write = function(data_imports, ref_list, lines_list, location,
 
   cur_package_doc = path("R", paste0(pkg_name, "-package"), ext="R")
   new_package_doc = path(target_dir, paste0(pkg_name, "-package"), ext="R")
-  write_lines(read_lines(cur_package_doc), file=new_package_doc)
 
+  .copy_package_doc(cur_package_doc, new_package_doc)
   .add_autoimport_package_doc(new_package_doc)
   .update_package_doc(new_package_doc, inserts)
   .remove_fun_lvl_imports(lines_list, target_dir, except=cur_package_doc)
   TRUE
 }
+
 
 #' @noRd
 #' @keywords internal
@@ -124,6 +125,15 @@ autoimport_write = function(data_imports, ref_list, lines_list, location,
 # Utils pkg-level -----------------------------------------------------------------------------
 
 
+#' @noRd
+#' @keywords internal
+#' @importFrom fs file_exists
+#' @importFrom readr read_lines write_lines
+.copy_package_doc = function(cur_package_doc, new_package_doc){
+  if(file_exists(cur_package_doc)){
+    write_lines(read_lines(cur_package_doc), file=new_package_doc)
+  }
+}
 
 #' @noRd
 #' @keywords internal
