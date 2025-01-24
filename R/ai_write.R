@@ -8,12 +8,14 @@
 #' @noRd
 #' @keywords internal
 #' @importFrom cli cli_h1 cli_inform
+#' @importFrom fs file_delete
 autoimport_write = function(data_imports, ref_list, lines_list, location,
                             ignore_package, pkg_name, target_dir, verbose){
 
   stopifnot(is.data.frame(data_imports))
   stopifnot(is.character(data_imports$pkg))
   stopifnot(names(ref_list)==names(lines_list))
+  file_delete(dir(target_dir, full.names=TRUE))
 
   if(location=="function"){
     if(verbose>0) cli_h1("Writing at function level")
