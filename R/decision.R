@@ -37,7 +37,9 @@ import_review = function(source_path="R/",
   }
 
   go = function(data_files){
-    review_app(data_files)
+    data_files %>%
+      filter(changed) %>%
+      review_app()
     rstudio_tickle()
   }
 
