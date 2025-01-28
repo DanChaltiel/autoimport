@@ -133,6 +133,46 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, ...,
 #diapo 3 donc en non-binding on est surpuissant ou c'est juste une paramétrisation ?
 
 
+#' @examples
+#' warn("hello", class="foobar") %>% expect_classed_conditions(warning_class="foo")
+expect_classed_conditions = function(expr, message_class=NULL, warning_class=NULL, error_class=NULL){
+  dummy = c("rlang_message", "message", "rlang_warning", "warning", "rlang_error", "error", "condition")
+  ms = list()
+  ws = list()
+  es = list()
+  x = withCallingHandlers(
+    withRestarts(expr, muffleStop=function() "expect_classed_conditions__error"),
+    message=function(m){
+      ms <<- c(ms, list(m))
+      invokeRestart("muffleMessage")
+    },
+    warning=function(w){
+      ws <<- c(ws, list(w))
+      invokeRestart("muffleWarning")
+    },
+    error=function(e){
+      es <<- c(es, list(e))
+      invokeRestart("muffleStop")
+    }
+  )
+
+  f = function(cond_list, cond_class){
+    cl = map(cond_list, class) %>% purrr::flatten_chr()
+    missing = setdiff(cond_class, cl) %>% setdiff(dummy)
+    extra = setdiff(cl, cond_class) %>% setdiff(dummy)
+    if(length(missing)>0 || length(extra)>0){
+      cli_abort(c("{.arg {caller_arg(cond_class)}} is not matching thrown conditions:",
+                  i="Missing expected classes: {.val {missing}}",
+                  i="Extra unexpected classes: {.val {extra}}"),
+                call=rlang::caller_env())
+    }
+  }
+  f(es, error_class)
+  f(ws, warning_class)
+  f(ms, message_class)
+  expect_true(TRUE)
+  x
+}
 
 condition_overview = function(expr){
   tryCatch2(expr) %>% attr("overview")

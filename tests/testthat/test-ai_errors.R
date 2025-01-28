@@ -1,10 +1,18 @@
 
 test_that("autoimport warnings", {
-  test_autoimport(files="sample_funs2.R") %>%
+  ai = test_autoimport(files="sample_funs2.R") %>%
     suppressMessages() %>%
-    expect_warning(class="autoimport_duplicate_warn") %>%
-    expect_warning(class="autoimport_fun_not_in_desc_warn") %>%
-    expect_warning(class="autoimport_fun_not_found_warn")
+    expect_classed_conditions(warning_class=c("autoimport_duplicate_warn",
+                                              "autoimport_fun_not_in_desc_warn",
+                                              "autoimport_fun_not_found_warn"))
+
+  target_dir = attr(ai, "target_dir")
+  target_file = path(target_dir, "sample_funs2.R")
+  expect_true(file_exists(target_dir))
+
+  #test output
+  out1 = readLines(target_file)
+  expect_in(c("#this is", "#a trailing comment"), out1)
 })
 
 

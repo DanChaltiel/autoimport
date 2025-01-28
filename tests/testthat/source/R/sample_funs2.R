@@ -46,3 +46,7 @@ foobar = function(){
   bind_rows()
 }
 
+
+#this is
+#a trailing comment
+#with only one empty line at EOF
