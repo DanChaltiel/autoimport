@@ -92,7 +92,7 @@ expect_not_imported = function(output, pkg, fun){
   invisible(faulty)
 }
 
-test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, verbose=2){
+test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, ..., verbose=2){
   #reset file paths
   if(is.null(root)){
     dir_source = test_path("source") %>% normalizePath()
@@ -124,7 +124,8 @@ test_autoimport = function(files, bad_ns=FALSE, use_cache=FALSE, root=NULL, verb
     ignore_package=TRUE,
     use_cache=use_cache,
     namespace_file=ns,
-    verbose=verbose
+    verbose=verbose,
+    ...
   )
 
 }

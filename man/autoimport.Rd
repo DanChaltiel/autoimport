@@ -6,6 +6,8 @@
 \usage{
 autoimport(
   root = ".",
+  ...,
+  location = c("function", "package"),
   files = get_R_dir(root),
   namespace_file = "NAMESPACE",
   description_file = "DESCRIPTION",
@@ -16,6 +18,10 @@ autoimport(
 }
 \arguments{
 \item{root}{Path to the root of the package.}
+
+\item{...}{unused}
+
+\item{location}{Whether to add \verb{@importFrom} dispatched above each function, or centralised at the package level.}
 
 \item{files}{Files to read. Default to the \verb{R/} folder.}
 
@@ -34,7 +40,7 @@ Mostly used for side effects. Invisibly returns a dataframe summarizing the func
 }
 \description{
 Automatically read all \code{R} files and compute appropriate \verb{@importFrom} tags in the roxygen headers.
-Choose which tags to add in the shiny app \code{\link[=import_review]{import_review()}} afterward.
+The tags can be added to the source files using the \code{\link[=import_review]{import_review()}} shiny app afterward.
 }
 \section{Limitations}{
 

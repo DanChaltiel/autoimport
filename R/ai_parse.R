@@ -25,17 +25,17 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
     imap(function(refs, filename) {
       file_hash = hash_file(filename)
       filename = basename(filename)
-      if(verbose>1) cli_inform(c(">"="File {.file {filename}}"))
       cache_file = cache[[filename]]
       cache_file_hash = if(is.null(cache_file[["..file_hash"]])) "" else cache_file[["..file_hash"]]
       if(isTRUE(read_from_cache) && file_hash==cache_file_hash){
+        if(verbose>1) cli_inform(c(">"="Reading file {.file {filename}} (from cache)"))
         rtn_file = cache[[filename]][["..imports"]] %>%
           map(~{
             if(nrow(.x)>0) .x$ai_source = "cache_file"
             .x
           })
-        verb = "Reading from cache"
       } else {
+        if(verbose>1) cli_inform(c(">"="Reading file {.file {filename}} (from file)"))
         rtn_file = refs %>%
           imap(function(ref, fun_name){
             cache_ref = cache_file[[fun_name]]
@@ -54,14 +54,12 @@ autoimport_parse = function(ref_list, cache_path, use_cache, pkg_name, ns,
             }
             rtn_ref
           })
-        verb = "Reading from file"
         cache[[filename]][["..file_hash"]] <<- file_hash
         cache[[filename]][["..imports"]] <<- rtn_file
       }
       if(verbose>1){
         s = rtn_file %>% map_dbl(nrow) %>% sum()
-        cli_inform(c("!"=verb,
-                     "i"="Found {s} function{?s} to import in {length(rtn_file)}
+        cli_inform(c("i"="Found {s} function{?s} to import in {length(rtn_file)}
                      function{?s} or code chunk{?s}."))
       }
       rtn_file
