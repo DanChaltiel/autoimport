@@ -37,7 +37,7 @@ comments = function (refs) {
     }
     if (i == length(refs)){#add trailing lines
       last_line = length(srcfile$lines)
-      last_byte = 1e8
+      last_byte = length(charToRaw(last(srcfile$lines)))
     } else {
       last_line = refs[[i]][3]
       last_byte = refs[[i]][4]
@@ -70,8 +70,8 @@ get_srcref_lines = function(parsed){
   refs %>% map(~list(first_line_fun=.x[1], last_line=.x[3]))
 
   rtn = map2(comments_refs, refs, ~{
-    stopifnot(.x[3]==.y[3])
-    list(first_line_com=.x[1], first_line_fun=.y[1], last_line=.x[3])
+    last_line = max(.x[3], .y[3])
+    list(first_line_com=.x[1], first_line_fun=.y[1], last_line=last_line)
   })
   attr(rtn, "src") = comments_refs
   rtn
