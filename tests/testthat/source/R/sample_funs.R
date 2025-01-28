@@ -22,6 +22,7 @@
 f1 = function(x){
   #private functions, should not be imported
   x = mutate(x, a=0) #remove existing import
+  x = assert(x, TRUE)
   x = filter(x, TRUE)
   #explicit calls, should not be imported
   x = dplyr::arrange(x, TRUE)
@@ -40,6 +41,8 @@ f1 = function(x){
   x = f()
   g = if(TRUE) na.omit else identity
   x = g()
+  #R6 function, should be ignored
+  x = x$met()
   stop("ok")
 }
 
