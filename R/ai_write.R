@@ -98,8 +98,7 @@ autoimport_write = function(data_imports, ref_list, lines_list, location,
 
       lines2 = comments_refs %>%
         imap(~get_lines2(.x, inserts[[.y]])) %>%
-        unname() %>% unlist() %>%
-        add_trailing_comment_lines(lines)
+        unname() %>% unlist()
 
       if(identical(lines, lines2)){
         if(verbose>0) cli_inform(c(">"="Nothing done in {.file {cur_file}} (all is already OK)"))
@@ -195,27 +194,6 @@ autoimport_write = function(data_imports, ref_list, lines_list, location,
 }
 
 # Utils ---------------------------------------------------------------------------------------
-
-
-#' If the file ends with comments, these would be ignored by the parser
-#' This functions adds them manually
-#' @importFrom stringr str_detect
-#' @noRd
-#' @keywords internal
-add_trailing_comment_lines = function(lines2, lines){
-  if(identical(lines, lines2)) return(lines2)
-
-  m = max(which(lines %in% lines2))
-  if(m==length(lines)) return(lines2)
-
-  trailing_lines = lines[m:length(lines)]
-  are_comments_or_spaces = str_detect(trailing_lines, "^\\s*$|^\\s*#.*$")
-  if(all(are_comments_or_spaces)){
-    lines2 = c(lines2, trailing_lines)
-  }
-
-  lines2
-}
 
 
 #' @importFrom dplyr arrange distinct filter mutate
