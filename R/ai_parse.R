@@ -191,6 +191,7 @@ parse_ref = function(ref, pkg_name, ns, deps){
   pd = getParseData(parse(text=.fun, keep.source=TRUE))
   non_comment = pd %>% filter(token!="COMMENT") %>% pull(text) %>% paste(collapse="")
   nms = pd$text[pd$token == "SYMBOL_FUNCTION_CALL"] %>% unique()
+  nms = setdiff(nms, "autoimport")
 
   inner_vars = pd %>%
     filter(token!="expr") %>%
@@ -223,7 +224,6 @@ parse_ref = function(ref, pkg_name, ns, deps){
       fun_is_private = pkg==pkg_name,
       fun_is_base = pkg %in% get_base_packages()
     ) %>%
-    filter(pkg!="autoimport") %>%
     select(fun, pkg, label, starts_with("pkg_"), starts_with("fun_")) %>%
     arrange(fun,
             desc(fun_is_inner),
