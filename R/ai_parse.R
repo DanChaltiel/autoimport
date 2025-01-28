@@ -197,10 +197,15 @@ parse_ref = function(ref, pkg_name, ns, deps){
     filter(str_detect(lead(token), "ASSIGN") & token=="SYMBOL") %>%
     pull(text)
 
-  if(getOption("ignore_prefixed", TRUE)){
-    nms_prefixed = pd$token == "SYMBOL_FUNCTION_CALL" & lag(pd$token,n=2)=="SYMBOL_PACKAGE"
+  if(getOption("autoimport_ignore_prefixed", TRUE)){
+    nms_prefixed = pd$token == "SYMBOL_FUNCTION_CALL" & lag(pd$token, n=2)=="SYMBOL_PACKAGE"
     nms_prefixed = pd$text[nms_prefixed]
     nms = setdiff(nms, nms_prefixed)
+  }
+  if(getOption("autoimport_ignore_R6", TRUE)){
+    nms_R6 = pd$token == "SYMBOL_FUNCTION_CALL" & lag(pd$token, n=1)=="'$'"
+    nms_R6 = pd$text[nms_R6]
+    nms = setdiff(nms, nms_R6)
   }
 
   if(length(nms)==0) return(NULL)
