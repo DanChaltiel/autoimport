@@ -9,6 +9,4 @@
 library(testthat)
 library(autoimport)
 
-print("Goooooooooooo")
-
 test_check("autoimport")
