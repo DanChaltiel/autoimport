@@ -27,6 +27,11 @@ filter = function(){
   1
 }
 
+#private function, should not conflict with autoimport:::assert
+assert = function(){
+  1
+}
+
 
 #function with inner function
 #' @importFrom dplyr filter

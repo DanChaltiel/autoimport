@@ -1,6 +1,7 @@
 
 
 test_that("autoimport works", {
+  # ai = test_autoimport(files="sample_funs.R")
   ai = test_autoimport(files="sample_funs.R",
                        verbose=0) %>%
     suppressMessages()
@@ -26,6 +27,7 @@ test_that("autoimport works", {
   #private functions, should not be imported
   expect_not_imported(out1, "dplyr", "mutate")
   expect_not_imported(out1, "dplyr", "filter")
+  expect_not_imported(out1, ".*", "assert")
 
   #explicit calls, should not be imported
   expect_not_imported(out1, "dplyr", "arrange")
