@@ -42,6 +42,7 @@ autoimport_read = function(lines_list, verbose) {
 #' @keywords internal
 warn_duplicated = function(ref_list, verbose) {
   ref_list %>% map(~map(.x, ~attr(.x, "lines")))
+  if(length(ref_list)==0) return(FALSE)
   dups = ref_list %>%
     map(~{
       lines = map(.x, ~attr(.x, "lines"))
