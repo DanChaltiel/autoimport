@@ -223,6 +223,7 @@ parse_ref = function(ref, pkg_name, ns, deps){
       fun_is_private = pkg==pkg_name,
       fun_is_base = pkg %in% get_base_packages()
     ) %>%
+    filter(pkg!="autoimport") %>%
     select(fun, pkg, label, starts_with("pkg_"), starts_with("fun_")) %>%
     arrange(fun,
             desc(fun_is_inner),
