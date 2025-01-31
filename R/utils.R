@@ -159,9 +159,11 @@ is_exported = function(fun, pkg, type="::", fail=FALSE){
 
 
 #' @noRd
-#' @importFrom utils installed.packages
 get_base_packages = function(){
-  rownames(installed.packages(priority="base"))
+  # rownames(installed.packages(priority="base")) %>% dput()
+  c("base", "compiler", "datasets", "graphics", "grDevices", "grid",
+    "methods", "parallel", "splines", "stats", "stats4", "tcltk",
+    "tools", "utils")
 }
 
 
