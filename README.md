@@ -1,4 +1,4 @@
-# autoimport
+# autoimport <a href='https://DanChaltiel.github.io/crosstable/'><img src='inst/figures/logo.png' align="right" height="175" /></a>
 
 <!-- badges: start -->
 
