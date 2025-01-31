@@ -3,9 +3,9 @@
 \docType{package}
 \name{autoimport-package}
 \alias{autoimport-package}
-\title{autoimport: Automatically generate @importFrom roxygen tags}
+\title{autoimport: Automatic Generation of @importFrom Tags}
 \description{
-A toolbox to read all R files inside a package and automatically generate @importFrom roxygen in the right place.
+A toolbox to read all R files inside a package and automatically generate @importFrom 'roxygen2' tags in the right place. Includes a shiny application to review the changes before applying them.
 }
 \seealso{
 Useful links:
