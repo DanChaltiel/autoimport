@@ -1,5 +1,5 @@
 Package: autoimport
-Version: 0.1.1
+Version: 0.1.1.9000
 Title: Automatic Generation of @importFrom Tags
 Authors@R: 
     c(person(given = "Dan",
