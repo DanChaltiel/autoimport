@@ -79,9 +79,6 @@ To keep them imported, you should either use a prefix (`pkg::my_fun`) or import 
 
 For that, `usethis::use_import_from()` and `usethis::use_pipe()` are your friends!
 
-Also, note that R6 methods calls trigger a "not found" warning (WIP, see #21).
-
-
 ## Cache system
 
 As running `autoimport()` on a large package can take some time, a cache system is implemented, by default in file `inst/autoimport_cache.rds`.
