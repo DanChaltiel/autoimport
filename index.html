@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">autoimport</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,37 +57,35 @@
 <div class="section level2">
 <h2 id="concept">Concept<a class="anchor" aria-label="anchor" href="#concept"></a>
 </h2>
-<p>When importing functions to use them in a package, you have the choice between <code>@import pkg</code> to import a whole package and <code>@importFrom pkg fun1 fun2</code> to import only a few functions.</p>
-<p>The <code>@importFrom</code> syntax is preferable, as it has been stressed out that importing whole packages “makes your code harder to read (you can’t tell where a function is coming from), and if you <code>@import</code> many packages, it increases the chances of function name conflicts.”</p>
-<p>The <a href="https://r-pkgs.org/dependencies-in-practice.html#in-code-below-r" class="external-link">R Packages (2e)</a> guidelines say that here are two reasonable locations for @importFrom :</p>
-<blockquote>
-<ul>
-<li><p>As close as possible to the usage of the external function. With this mindset, you would place @importFrom in the roxygen comment above the function in your package where you use the external function.</p></li>
-<li><p>In a central location. This approach keeps all @importFrom tags together, in a dedicated section of the package-level documentation file (which can be created with <code><a href="https://usethis.r-lib.org/reference/use_package_doc.html" class="external-link">usethis::use_package_doc()</a></code>).</p></li>
-</ul>
-</blockquote>
-<p>I find the first option much clearer, but, as they warn, it tends to get very tedious to keep track of all the function calls.</p>
-<p>Therefore, <code>autoimport</code> will parse your code, detect all the functions you import, and then add the right @importFrom tags in the right place. Just like that!</p>
+<p>When importing functions into a package, the <a href="https://r-pkgs.org/dependencies-in-practice.html#in-code-below-r" class="external-link">R Packages (2e)</a> guidelines recommend using <code>@importFrom</code>, either above each function or in a dedicated section of the package-level documentation.</p>
+<p>But let’s be honest for a second, this is one of the most tedious tasks ever, isn’t it? And we are devs, we love automating things, don’t we?</p>
+<p>Meet <code>autoimport</code>! It parses your code, detects all imported functions, and adds the appropriate <code>@importFrom</code> tags in the right place. Just like that!</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>For now, only the development version is available:</p>
+<p>Install either from the stable version from CRAN or the dev version from GitHub:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install development version on Github</span></span>
+<code class="sourceCode R"><span><span class="co"># Install from CRAN</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"autoimport"</span><span class="op">)</span></span>
+<span><span class="co"># Install from Github</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"DanChaltiel/autoimport"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
-<p>Simply load the package and run the function!</p>
+<p>Just run the function, it’s showtime!</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="st">"."</span><span class="op">)</span></span>
-<span><span class="fu">autoimport</span><span class="fu">::</span><span class="fu"><a href="reference/autoimport.html">autoimport</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The first run will take some time, but a cache system is implemented so that next runs are faster.</p>
-<p>Then, you can see the diff and accept the changes using the shiny widget:</p>
+<span><span class="fu">autoimport</span><span class="fu">::</span><span class="fu"><a href="reference/autoimport.html">autoimport</a></span><span class="op">(</span><span class="op">)</span> <span class="co">#location="function" by default</span></span>
+<span><span class="co">#autoimport::autoimport(location="package")</span></span></code></pre></div>
+<p>The first run might take some time, but a cache system is implemented so that next runs are faster.</p>
+<p>Afterward, you can see the diff and accept the changes using the shiny widget:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">autoimport</span><span class="fu">::</span><span class="fu"><a href="reference/import_review.html">import_review</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>However, a picture is worth a thousand words:</p>
+<p><img src="inst/figures/showcase.gif"></p>
+<p>As you could probably tell, the shiny widget is <del>stolen from</del> inspired by <code><a href="https://testthat.r-lib.org/reference/snapshot_accept.html" class="external-link">testthat::snapshot_review()</a></code>. Many thanks for them for this gem!</p>
 </div>
 <div class="section level2">
 <h2 id="important-notes">Important notes<a class="anchor" aria-label="anchor" href="#important-notes"></a>
@@ -134,7 +132,7 @@
 <div class="section level2">
 <h2 id="style">Style<a class="anchor" aria-label="anchor" href="#style"></a>
 </h2>
-<p>As I couldn’t find any standardized guideline about the right order of <code>roxygen2</code> tags, <code>autoimport</code> puts them:</p>
+<p>As I couldn’t find any standardized guideline about the right order of <code>roxygen2</code> tags (#30), <code>autoimport</code> puts them:</p>
 <ul>
 <li>in place of the first <code>@importFrom</code> tag if there is one</li>
 <li>just before the function call otherwise</li>
