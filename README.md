@@ -15,48 +15,50 @@
 
 ## Concept
 
-When importing functions to use them in a package, you have the choice between `@import pkg` to import a whole package and `@importFrom pkg fun1 fun2` to import only a few functions.
+When importing functions into a package, the [R Packages (2e)](https://r-pkgs.org/dependencies-in-practice.html#in-code-below-r) guidelines recommend using `@importFrom`, either above each function or in a dedicated section of the package-level documentation.
 
-The `@importFrom` syntax is preferable, as it has been stressed out that importing whole packages "makes your code harder to read (you can't tell where a function is coming from), and if you `@import` many packages, it increases the chances of function name conflicts."
+But let's be honest for a second, this is one of the most tedious tasks ever, isn't it?
+And we are devs, we love automating things, don't we?
 
-The [R Packages (2e)](https://r-pkgs.org/dependencies-in-practice.html#in-code-below-r) guidelines say that here are two reasonable locations for @importFrom :
-
-> -   As close as possible to the usage of the external function. With this mindset, you would place @importFrom in the roxygen comment above the function in your package where you use the external function.
->
-> -   In a central location. This approach keeps all @importFrom tags together, in a dedicated section of the package-level documentation file (which can be created with `usethis::use_package_doc()`).
-
-I find the first option much clearer, but, as they warn, it tends to get very tedious to keep track of all the function calls.
-
-Therefore, `autoimport` will parse your code, detect all the functions you import, and then add the right @importFrom tags in the right place. Just like that!
+Meet `autoimport`!
+It parses your code, detects all imported functions, and adds the appropriate `@importFrom` tags in the right place. Just like that!
 
 
 ## Installation
 
-For now, only the development version is available:
+Install either from the stable version from CRAN or the dev version from GitHub:
 
 ``` r
-# Install development version on Github
+# Install from CRAN
+pak::pak("autoimport")
+# Install from Github
 pak::pak("DanChaltiel/autoimport")
 ```
 
 
 ## Getting started
 
-Simply load the package and run the function!
+Just run the function, it's showtime!
 
 ``` r
 devtools::load_all(".")
-autoimport::autoimport()
+autoimport::autoimport() #location="function" by default
+#autoimport::autoimport(location="package")
 ```
 
-The first run will take some time, but a cache system is implemented so that next runs are faster.
+The first run might take some time, but a cache system is implemented so that next runs are faster.
 
-Then, you can see the diff and accept the changes using the shiny widget:
+Afterward, you can see the diff and accept the changes using the shiny widget:
 
 ``` r
 autoimport::import_review()
 ```
 
+However, a picture is worth a thousand words:
+
+![](inst/figures/showcase.gif)
+
+As you could probably tell, the shiny widget is ~~stolen from~~ inspired by `testthat::snapshot_review()`. Many thanks for them for this gem!
 
 ## Important notes
 
@@ -103,7 +105,8 @@ Note that this algorithm is still a bit experimental and that I could only test 
 
 ## Style
 
-As I couldn't find any standardized guideline about the right order of `roxygen2` tags, `autoimport` puts them:
+As I couldn't find any standardized guideline about the right order of `roxygen2` tags (#30), `autoimport` puts them:
 
 -   in place of the first `@importFrom` tag if there is one
 -   just before the function call otherwise
+
