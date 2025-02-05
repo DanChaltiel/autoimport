@@ -2,6 +2,7 @@ CMD
 IMPORTLIST
 Lifecycle
 ORCID
+Roxygen
 WIP
 importFrom
 roxygen

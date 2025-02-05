@@ -28,7 +28,7 @@ import_review = function(source_path="R/",
                          background=getOption("autoimport_background", FALSE)) {
   check_installed("shiny", "for `import_review()` to work")
   check_installed("diffviewer", "for `import_review()` to work")
-  data_files = review_files(source_path, output_path) |>
+  data_files = review_files(source_path, output_path) %>%
     arrange(desc(str_ends(old_files, "package.[Rr]")))
 
   if(!any(data_files$changed)){

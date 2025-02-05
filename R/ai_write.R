@@ -40,10 +40,10 @@ autoimport_write = function(data_imports, ref_list, lines_list, location,
 .autoimport_write_lvl_pkg = function(data_imports, ref_list, lines_list,
                                      ignore_package, pkg_name, target_dir, verbose) {
   #merge all functions inserts into one (by setting source_fun)
-  imports = data_imports |>
-    filter(!(ignore_package & str_ends(file, "-package.[Rr]"))) |>
-    mutate(source_fun="package_level") |>
-    get_inserts(exclude=c("base", "inner", pkg_name)) |>
+  imports = data_imports %>%
+    filter(!(ignore_package & str_ends(file, "-package.[Rr]"))) %>%
+    mutate(source_fun="package_level") %>%
+    get_inserts(exclude=c("base", "inner", pkg_name)) %>%
     unlist()
   inserts = glue("#' @importFrom {imports}")
 
@@ -165,8 +165,8 @@ autoimport_write = function(data_imports, ref_list, lines_list, location,
 #' @importFrom stringr str_detect
 .update_package_doc = function(package_doc, inserts){
   content = read_lines(package_doc)
-  start = str_detect(content, "autoimport namespace: start") |> which()
-  stop  = str_detect(content, "autoimport namespace: end")  |> which()
+  start = str_detect(content, "autoimport namespace: start") %>% which()
+  stop  = str_detect(content, "autoimport namespace: end")  %>% which()
   if(length(start)==0) start = length(content)
   if(length(stop)==0)  stop = length(content)
 
@@ -182,7 +182,7 @@ autoimport_write = function(data_imports, ref_list, lines_list, location,
 #' @noRd
 #' @keywords internal
 .remove_fun_lvl_imports = function(lines_list, target_dir, except){
-  lines_list |>
+  lines_list %>%
     imap(function(lines, filename){
       if(path_abs(filename) %in% path_abs(except)) return(FALSE)
       target_file = path(target_dir, basename(filename))

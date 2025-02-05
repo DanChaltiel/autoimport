@@ -21,7 +21,7 @@ autoimport(
 
 \item{...}{unused}
 
-\item{location}{Whether to add \verb{@importFrom} dispatched above each function, or centralised at the package level.}
+\item{location}{Whether to add \verb{@importFrom} dispatched above each function, or centralized at the package level.}
 
 \item{files}{Files to read. Default to the \verb{R/} folder.}
 
@@ -39,7 +39,7 @@ autoimport(
 Mostly used for side effects. Invisibly returns a dataframe summarizing the function imports, with input arguments as attributes.
 }
 \description{
-Automatically read all \code{R} files and compute appropriate \verb{@importFrom} tags in the roxygen headers.
+Automatically read all \code{R} files and compute appropriate \verb{@importFrom} tags in the roxygen2 headers.
 The tags can be added to the source files using the \code{\link[=import_review]{import_review()}} shiny app afterward.
 }
 \section{Limitations}{

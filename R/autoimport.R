@@ -1,11 +1,11 @@
 
 #' Automatically compute `@importFrom` tags
 #'
-#' Automatically read all `R` files and compute appropriate `@importFrom` tags in the roxygen headers.
+#' Automatically read all `R` files and compute appropriate `@importFrom` tags in the roxygen2 headers.
 #' The tags can be added to the source files using the [import_review()] shiny app afterward.
 #'
 #' @param root Path to the root of the package.
-#' @param location Whether to add `@importFrom` dispatched above each function, or centralised at the package level.
+#' @param location Whether to add `@importFrom` dispatched above each function, or centralized at the package level.
 #' @param files Files to read. Default to the `R/` folder.
 #' @param namespace_file Path to the NAMESPACE file
 #' @param description_file Path to the DESCRIPTION file
